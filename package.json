@@ -1,0 +1,13 @@
+{
+  "name": "mustachio",
+  "version": "0.0.0-experimental",
+  "description": "An experimental pull-based Mustache engine",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "license": "MIT"
+}
