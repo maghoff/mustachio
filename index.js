@@ -10,13 +10,13 @@ function* parse(str) {
 	while (i < str.length) {
 		var openPos = str.indexOf(openDelimiter, i);
 
-		if (openPos > i) {
-			yield new Literal(str.substr(i, openPos-i));
+		if (openPos === -1) {
+			yield new Literal(str.slice(i));
+			break;
 		}
 
-		if (openPos === -1) {
-			yield new Literal(str.substr(i));
-			break;
+		if (openPos > i) {
+			yield new Literal(str.slice(i, openPos));
 		}
 
 		i = openPos + openDelimiter.length;
@@ -29,7 +29,7 @@ function* parse(str) {
 		var closePos = str.indexOf(closeDelimiter, i);
 		if (closePos === -1) throw new Error("Mustache tag opened without being closed");
 
-		var tagContents = str.substr(i, closePos-i);
+		var tagContents = str.slice(i, closePos);
 		// TODO Handle tags :P
 
 		i = closePos + closeDelimiter.length;
