@@ -1,10 +1,20 @@
-var assert = require('chai').assert;
+'use strict';
 
-describe('Array', function() {
-	describe('#indexOf()', function () {
-		it('should return -1 when the value is not present', function () {
-			assert.equal(-1, [1,2,3].indexOf(5));
-			assert.equal(-1, [1,2,3].indexOf(0));
-		});
+const mustachio = require('../');
+const chai = require('chai');
+
+const assert = chai.assert;
+
+describe('render', function() {
+	it('should not interpolate a simple string', function () {
+		assert.equal("apekatt", mustachio.render("apekatt"));
+	});
+
+	it('should manage lots of empty interpolations', function () {
+		assert.equal("apekatt", mustachio.render("ap{{}}ek{{}}at{{}}t"));
+	});
+
+	it('should complain about unclosed tag', function () {
+		chai.expect(() => mustachio.render("ape{{katt")).to.throw();
 	});
 });
