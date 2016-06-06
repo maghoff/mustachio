@@ -1,13 +1,5 @@
 'use strict';
 
-function Literal(str) { this.str = str; }
-Literal.prototype.render = function* (data) { yield this.str; }
-
-function Interpolation(path, verbatim) {
-	this.path = path;
-	this.verbatim = verbatim;
-}
-
 function resolve(data, path) {
 	if (!data) return;
 	if (path.length === 0) return data;
@@ -18,20 +10,37 @@ function stringify(value) {
 	return "" + (value || "");
 }
 
+function Literal(str) { this.str = str; }
+Literal.prototype.render = function* (data) { yield this.str; }
+
+function Interpolation(path, verbatim) {
+	this.path = path;
+	this.verbatim = verbatim;
+}
+
 Interpolation.prototype.render = function* (data) {
 	const resolved = stringify(resolve(data, this.path));
 	if (this.verbatim) yield resolved;
 	else yield* escape(resolved);
 }
 
+function Sequence(seq) { this.seq = seq; }
+
+Sequence.prototype.render = function* (data) {
+	for (var i = 0; i < this.seq.length; ++i) {
+		yield* this.seq[i].render(data);
+	}
+};
+
 function* escape(str) {
 	var i = 0;
 	while (i < str.length) {
-		var j = str.slice(i).search(/[&<>"']/) + i;
+		var j = str.slice(i).search(/[&<>"']/);
 		if (j === -1) {
 			yield str.slice(i);
 			return;
 		}
+		j += i;
 		if (j !== i) yield str.slice(i, j);
 		switch (str[j]) {
 			case '&': yield '&amp;'; break;
@@ -44,34 +53,33 @@ function* escape(str) {
 	}
 }
 
-function* parse(str) {
-	var openDelimiter = '{{';
-	var closeDelimiter = '}}';
-
+function getSequence(ctx, str) {
 	var i = 0;
+	var seq = [];
+
 	while (i < str.length) {
-		const openPos = str.indexOf(openDelimiter, i);
+		const openPos = str.indexOf(ctx.openDelimiter, i);
 
 		if (openPos === -1) {
-			yield new Literal(str.slice(i));
+			seq.push(new Literal(str.slice(i)));
 			break;
 		}
 
 		if (openPos > i) {
-			yield new Literal(str.slice(i, openPos));
+			seq.push(new Literal(str.slice(i, openPos)));
 		}
 
-		i = openPos + openDelimiter.length;
+		i = openPos + ctx.openDelimiter.length;
 
 		if (i >= str.length) throw new Error("Mustache tag opened without being closed");
 
-		var expectedCloseDelimiter = closeDelimiter;
+		var expectedCloseDelimiter = ctx.closeDelimiter;
 
 		var fn = str[i];
 
 		switch (str[i]) {
-		case '{': expectedCloseDelimiter = '}' + closeDelimiter; break;
-		case '=': expectedCloseDelimiter = '=' + closeDelimiter; break;
+		case '{': expectedCloseDelimiter = '}' + ctx.closeDelimiter; break;
+		case '=': expectedCloseDelimiter = '=' + ctx.closeDelimiter; break;
 		}
 
 		if (fn.match(/[{&=<#/]/)) i++;
@@ -83,30 +91,35 @@ function* parse(str) {
 		const tagContents = str.slice(i, closePos).trim();
 
 		switch (fn) {
-		case '': yield new Interpolation(tagContents.split('.')); break;
+		case '': seq.push(new Interpolation(tagContents.split('.'))); break;
 		case '{':
 		case '&':
-			yield new Interpolation(tagContents.split('.'), true); break;
+			seq.push(new Interpolation(tagContents.split('.'), true)); break;
 		case '=':
 			const delimiters = tagContents.split(/\s+/);
 			if (delimiters.length !== 2) throw new Error(`Invalid delimiter specification: ${JSON.stringify(tagContents)}`);
-			openDelimiter = delimiters[0];
-			closeDelimiter = delimiters[1];
+			ctx.openDelimiter = delimiters[0];
+			ctx.closeDelimiter = delimiters[1];
 			break;
 		}
 
 		i = closePos + expectedCloseDelimiter.length;
 	}
+
+	return new Sequence(seq);
 }
 
-function* generate(template, data) {
-	for (var x = template.next(); !x.done; x = template.next()) {
-		yield* x.value.render(data);
-	}
+function parse(str) {
+	const ctx = {
+		openDelimiter: '{{',
+		closeDelimiter: '}}'
+	};
+
+	return getSequence(ctx, str);
 }
 
 function render(template, data) {
-	var g = generate(parse(template), data);
+	var g = parse(template).render(data);
 
 	var bufs = [];
 	for (var x = g.next(); !x.done; x = g.next()) {
@@ -117,6 +130,5 @@ function render(template, data) {
 }
 
 module.exports = {
-	parse,
 	render
 };
