@@ -87,6 +87,12 @@ function* parse(str) {
 		case '{':
 		case '&':
 			yield new Interpolation(tagContents.split('.'), true); break;
+		case '=':
+			const delimiters = tagContents.split(/\s+/);
+			if (delimiters.length !== 2) throw new Error(`Invalid delimiter specification: ${JSON.stringify(tagContents)}`);
+			openDelimiter = delimiters[0];
+			closeDelimiter = delimiters[1];
+			break;
 		}
 
 		i = closePos + expectedCloseDelimiter.length;

@@ -7,6 +7,7 @@ const assert = chai.assert;
 
 function runSelectSpecs() {
 	runSpec("interpolation.json", require('./specs/interpolation.json'));
+	runSpec("delimiters.json", require('./specs/delimiters.json'));
 }
 
 function runAllSpecs() {
