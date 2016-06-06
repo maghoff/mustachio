@@ -3,13 +3,23 @@
 function Literal(str) { this.str = str; }
 Literal.prototype.render = function* (data) { yield this.str; }
 
-function Interpolation(name, verbatim) {
-	this.name = name;
+function Interpolation(path, verbatim) {
+	this.path = path;
 	this.verbatim = verbatim;
 }
 
+function resolve(data, path) {
+	if (!data) return;
+	if (path.length === 0) return data;
+	else return resolve(data[path[0]], path.slice(1));
+}
+
+function stringify(value) {
+	return "" + (value || "");
+}
+
 Interpolation.prototype.render = function* (data) {
-	const resolved = "" + (data[this.name] || "");
+	const resolved = stringify(resolve(data, this.path));
 	if (this.verbatim) yield resolved;
 	else yield* escape(resolved);
 }
@@ -73,10 +83,10 @@ function* parse(str) {
 		const tagContents = str.slice(i, closePos).trim();
 
 		switch (fn) {
-		case '': yield new Interpolation(tagContents); break;
+		case '': yield new Interpolation(tagContents.split('.')); break;
 		case '{':
 		case '&':
-			yield new Interpolation(tagContents, true); break;
+			yield new Interpolation(tagContents.split('.'), true); break;
 		}
 
 		i = closePos + expectedCloseDelimiter.length;
