@@ -37,9 +37,10 @@ Sequence.prototype.render = function* (context) {
 	}
 };
 
-function Section(path, nested) {
+function Section(path, nested, invert) {
 	this.path = path;
 	this.nested = nested;
+	this.invert = invert;
 }
 Section.prototype.render = function* (context) {
 	const value = resolve(context, this.path);
@@ -51,7 +52,7 @@ Section.prototype.render = function* (context) {
 	} else if (typeof value === 'object') {
 		yield* this.nested.render(context.subcontext(value));
 	} else {
-		if (value) yield* this.nested.render(context.subcontext({ ".": value }));
+		if (!!value != !!this.invert) yield* this.nested.render(context.subcontext({ ".": value }));
 	}
 };
 
@@ -118,7 +119,7 @@ function getSequence(ctx, str) {
 		case '=': expectedCloseDelimiter = '=' + ctx.closeDelimiter; break;
 		}
 
-		if (fn.match(/[{&=<#/]/)) i++;
+		if (fn.match(/[{&=<#/^]/)) i++;
 		else fn = '';
 
 		const closePos = str.indexOf(expectedCloseDelimiter, i);
@@ -140,9 +141,10 @@ function getSequence(ctx, str) {
 			ctx.closeDelimiter = delimiters[1];
 			break;
 		case '#':
+		case '^':
 			const nested = getSequence(ctx, str.slice(i));
 			i += nested.len;
-			seq.push(new Section(tagContents === '.' ? [] : tagContents.split('.'), nested.ast));
+			seq.push(new Section(tagContents === '.' ? [] : tagContents.split('.'), nested.ast, fn === '^'));
 			break;
 		case '/':
 			return {
