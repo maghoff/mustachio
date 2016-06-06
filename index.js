@@ -3,8 +3,16 @@
 function Literal(str) { this.str = str; }
 Literal.prototype.render = function* (data) { yield this.str; }
 
-function Interpolation(name) { this.name = name; }
-Interpolation.prototype.render = function* (data) { yield* escape("" + (data[this.name] || "")); }
+function Interpolation(name, verbatim) {
+	this.name = name;
+	this.verbatim = verbatim;
+}
+
+Interpolation.prototype.render = function* (data) {
+	const resolved = "" + (data[this.name] || "");
+	if (this.verbatim) yield resolved;
+	else yield* escape(resolved);
+}
 
 function* escape(str) {
 	var i = 0;
@@ -32,7 +40,7 @@ function* parse(str) {
 
 	var i = 0;
 	while (i < str.length) {
-		var openPos = str.indexOf(openDelimiter, i);
+		const openPos = str.indexOf(openDelimiter, i);
 
 		if (openPos === -1) {
 			yield new Literal(str.slice(i));
@@ -45,19 +53,33 @@ function* parse(str) {
 
 		i = openPos + openDelimiter.length;
 
-		// TODO Figure out expected closing delimiter
-		// The first char should determine some special cases:
-		//  '{' should probably lead to expecting '}' + closeDelimiter
-		//  '=' should probably lead to expecting '=' + closeDelimiter
+		if (i >= str.length) throw new Error("Mustache tag opened without being closed");
 
-		var closePos = str.indexOf(closeDelimiter, i);
+		var expectedCloseDelimiter = closeDelimiter;
+
+		var fn = str[i];
+
+		switch (str[i]) {
+		case '{': expectedCloseDelimiter = '}' + closeDelimiter; break;
+		case '=': expectedCloseDelimiter = '=' + closeDelimiter; break;
+		}
+
+		if (fn.match(/[{&=<#/]/)) i++;
+		else fn = '';
+
+		const closePos = str.indexOf(expectedCloseDelimiter, i);
 		if (closePos === -1) throw new Error("Mustache tag opened without being closed");
 
-		var tagContents = str.slice(i, closePos);
-		yield new Interpolation(tagContents);
-		// TODO Handle tags better! :P
+		const tagContents = str.slice(i, closePos).trim();
 
-		i = closePos + closeDelimiter.length;
+		switch (fn) {
+		case '': yield new Interpolation(tagContents); break;
+		case '{':
+		case '&':
+			yield new Interpolation(tagContents, true); break;
+		}
+
+		i = closePos + expectedCloseDelimiter.length;
 	}
 }
 
