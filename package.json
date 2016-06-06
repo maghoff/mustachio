@@ -16,6 +16,7 @@
     "mocha": "^2.5.3"
   },
   "scripts": {
+    "pretest": "./test/get_spec.sh",
     "test": "mocha"
   },
   "license": "MIT"
