@@ -32,6 +32,22 @@ Sequence.prototype.render = function* (data) {
 	}
 };
 
+function Section(path, nested) {
+	this.path = path;
+	this.nested = nested;
+}
+Section.prototype.render = function* (data) {
+	const value = resolve(data, this.path);
+
+	if (Array.isArray(value)) {
+		throw new Error("Array iteration not implemented");
+	} else if (typeof value === 'object') {
+		yield* this.nested.render(value);
+	} else {
+		if (value) yield* this.nested.render(data);
+	}
+};
+
 function* escape(str) {
 	var i = 0;
 	while (i < str.length) {
@@ -62,6 +78,7 @@ function getSequence(ctx, str) {
 
 		if (openPos === -1) {
 			seq.push(new Literal(str.slice(i)));
+			i = str.length;
 			break;
 		}
 
@@ -90,6 +107,8 @@ function getSequence(ctx, str) {
 
 		const tagContents = str.slice(i, closePos).trim();
 
+		i = closePos + expectedCloseDelimiter.length;
+
 		switch (fn) {
 		case '': seq.push(new Interpolation(tagContents.split('.'))); break;
 		case '{':
@@ -101,12 +120,23 @@ function getSequence(ctx, str) {
 			ctx.openDelimiter = delimiters[0];
 			ctx.closeDelimiter = delimiters[1];
 			break;
+		case '#':
+			const nested = getSequence(ctx, str.slice(i));
+			i += nested.len;
+			seq.push(new Section(tagContents.split('.'), nested.ast));
+			break;
+		case '/':
+			return {
+				ast: new Sequence(seq),
+				len: i
+			};
 		}
-
-		i = closePos + expectedCloseDelimiter.length;
 	}
 
-	return new Sequence(seq);
+	return {
+		ast: new Sequence(seq),
+		len: i
+	};
 }
 
 function parse(str) {
@@ -115,7 +145,10 @@ function parse(str) {
 		closeDelimiter: '}}'
 	};
 
-	return getSequence(ctx, str);
+	const result = getSequence(ctx, str);
+
+	if (result.len !== str.length) throw new Error('Unable to fully parse input');
+	return result.ast;
 }
 
 function render(template, data) {
