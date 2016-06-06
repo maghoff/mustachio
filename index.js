@@ -1,9 +1,14 @@
 'use strict';
 
-function resolve(data, path) {
-	if (!data) return;
-	if (path.length === 0) return data;
-	else return resolve(data[path[0]], path.slice(1));
+function resolve(context, path) {
+	function r(data, path) {
+		if (!data) return;
+		if (path.length === 0) return data;
+		return r(data[path[0]], path.slice(1));
+	}
+
+	if (path.length === 0) return context.data;
+	return r(context.get(path[0]), path.slice(1));
 }
 
 function stringify(value) {
@@ -11,24 +16,24 @@ function stringify(value) {
 }
 
 function Literal(str) { this.str = str; }
-Literal.prototype.render = function* (data) { yield this.str; }
+Literal.prototype.render = function* (_context) { yield this.str; }
 
 function Interpolation(path, verbatim) {
 	this.path = path;
 	this.verbatim = verbatim;
 }
 
-Interpolation.prototype.render = function* (data) {
-	const resolved = stringify(resolve(data, this.path));
+Interpolation.prototype.render = function* (context) {
+	const resolved = stringify(resolve(context, this.path));
 	if (this.verbatim) yield resolved;
 	else yield* escape(resolved);
 }
 
 function Sequence(seq) { this.seq = seq; }
 
-Sequence.prototype.render = function* (data) {
+Sequence.prototype.render = function* (context) {
 	for (var i = 0; i < this.seq.length; ++i) {
-		yield* this.seq[i].render(data);
+		yield* this.seq[i].render(context);
 	}
 };
 
@@ -36,16 +41,30 @@ function Section(path, nested) {
 	this.path = path;
 	this.nested = nested;
 }
-Section.prototype.render = function* (data) {
-	const value = resolve(data, this.path);
+Section.prototype.render = function* (context) {
+	const value = resolve(context, this.path);
 
 	if (Array.isArray(value)) {
-		throw new Error("Array iteration not implemented");
+		for (var i = 0; i < value.length; ++i) {
+			yield* this.nested.render(context.subcontext(value[i]));
+		}
 	} else if (typeof value === 'object') {
-		yield* this.nested.render(value);
+		yield* this.nested.render(context.subcontext(value));
 	} else {
-		if (value) yield* this.nested.render(data);
+		if (value) yield* this.nested.render(context.subcontext({ ".": value }));
 	}
+};
+
+function Context(data, parent) {
+	this.data = data;
+	this.parent = parent;
+}
+Context.prototype.get = function (id) {
+	if (this.data.hasOwnProperty(id)) return this.data[id];
+	else if (this.parent) return this.parent.get(id);
+};
+Context.prototype.subcontext = function (data) {
+	return new Context(data, this);
 };
 
 function* escape(str) {
@@ -110,10 +129,10 @@ function getSequence(ctx, str) {
 		i = closePos + expectedCloseDelimiter.length;
 
 		switch (fn) {
-		case '': seq.push(new Interpolation(tagContents.split('.'))); break;
+		case '': seq.push(new Interpolation(tagContents === '.' ? [] : tagContents.split('.'))); break;
 		case '{':
 		case '&':
-			seq.push(new Interpolation(tagContents.split('.'), true)); break;
+			seq.push(new Interpolation(tagContents === '.' ? [] : tagContents.split('.'), true)); break;
 		case '=':
 			const delimiters = tagContents.split(/\s+/);
 			if (delimiters.length !== 2) throw new Error(`Invalid delimiter specification: ${JSON.stringify(tagContents)}`);
@@ -123,7 +142,7 @@ function getSequence(ctx, str) {
 		case '#':
 			const nested = getSequence(ctx, str.slice(i));
 			i += nested.len;
-			seq.push(new Section(tagContents.split('.'), nested.ast));
+			seq.push(new Section(tagContents === '.' ? [] : tagContents.split('.'), nested.ast));
 			break;
 		case '/':
 			return {
@@ -152,7 +171,7 @@ function parse(str) {
 }
 
 function render(template, data) {
-	var g = parse(template).render(data);
+	var g = parse(template).render(new Context(data));
 
 	var bufs = [];
 	for (var x = g.next(); !x.done; x = g.next()) {
