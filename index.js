@@ -1,10 +1,30 @@
 'use strict';
 
 function Literal(str) { this.str = str; }
-Literal.prototype.render = function (data) { return this.str; }
+Literal.prototype.render = function* (data) { yield this.str; }
 
 function Interpolation(name) { this.name = name; }
-Interpolation.prototype.render = function (data) { return data[this.name] || ""; }
+Interpolation.prototype.render = function* (data) { yield* escape(data[this.name] || ""); }
+
+function* escape(str) {
+	var i = 0;
+	while (i < str.length) {
+		var j = str.slice(i).search(/[&<>"']/) + i;
+		if (j === -1) {
+			yield str.slice(i);
+			return;
+		}
+		if (j !== i) yield str.slice(i, j);
+		switch (str[j]) {
+			case '&': yield '&amp;'; break;
+			case '<': yield '&lt;'; break;
+			case '>': yield '&gt;'; break;
+			case '"': yield '&quot;'; break;
+			case "'": yield '&apos;'; break;
+		}
+		i = j+1;
+	}
+}
 
 function* parse(str) {
 	var openDelimiter = '{{';
@@ -41,12 +61,18 @@ function* parse(str) {
 	}
 }
 
+function* generate(template, data) {
+	for (var x = template.next(); !x.done; x = template.next()) {
+		yield* x.value.render(data);
+	}
+}
+
 function render(template, data) {
-	var p = parse(template);
+	var g = generate(parse(template), data);
 
 	var bufs = [];
-	for (var x = p.next(); !x.done; x = p.next()) {
-		bufs.push(x.value.render(data));
+	for (var x = g.next(); !x.done; x = g.next()) {
+		bufs.push(x.value);
 	}
 
 	return bufs.join('');
