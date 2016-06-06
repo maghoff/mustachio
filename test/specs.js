@@ -12,7 +12,7 @@ function runSelectSpecs() {
 function runAllSpecs() {
 	// TODO This will be the day..!
 	fs.readdirSync(path.join(__dirname, 'specs'))
-		.filter(x => x.match(/\.json$/))
+		.filter(x => x.match(/^[^~].*\.json$/))
 		.forEach(x => runSpec(x, require(`./specs/${x}`)));
 }
 
