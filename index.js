@@ -4,7 +4,7 @@ function Literal(str) { this.str = str; }
 Literal.prototype.render = function* (data) { yield this.str; }
 
 function Interpolation(name) { this.name = name; }
-Interpolation.prototype.render = function* (data) { yield* escape(data[this.name] || ""); }
+Interpolation.prototype.render = function* (data) { yield* escape("" + (data[this.name] || "")); }
 
 function* escape(str) {
 	var i = 0;
