@@ -40,19 +40,27 @@ Sequence.prototype.render = function* (context) {
 function Section(path, nested, invert) {
 	this.path = path;
 	this.nested = nested;
-	this.invert = invert;
+	this.invert = !!invert;
 }
 Section.prototype.render = function* (context) {
 	const value = resolve(context, this.path);
 
 	if (Array.isArray(value)) {
-		for (var i = 0; i < value.length; ++i) {
-			yield* this.nested.render(context.subcontext(value[i]));
+		if (this.invert) {
+			if (!value.length) {
+				yield* this.nested.render(context);
+			}
+		} else {
+			for (var i = 0; i < value.length; ++i) {
+				yield* this.nested.render(context.subcontext(value[i]));
+			}
 		}
 	} else if (typeof value === 'object') {
+		if (!!value == this.invert) return;
 		yield* this.nested.render(context.subcontext(value));
 	} else {
-		if (!!value != !!this.invert) yield* this.nested.render(context.subcontext({ ".": value }));
+		if (!!value == this.invert) return;
+		yield* this.nested.render(context.subcontext({ ".": value }));
 	}
 };
 
