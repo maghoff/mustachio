@@ -119,7 +119,7 @@ function getSequence(ctx, str) {
 		case '=': expectedCloseDelimiter = '=' + ctx.closeDelimiter; break;
 		}
 
-		if (fn.match(/[{&=<#/^]/)) i++;
+		if (fn.match(/[{&=<#/^!]/)) i++;
 		else fn = '';
 
 		const closePos = str.indexOf(expectedCloseDelimiter, i);
@@ -151,6 +151,7 @@ function getSequence(ctx, str) {
 				ast: new Sequence(seq),
 				len: i
 			};
+		case '!': break;
 		}
 	}
 
