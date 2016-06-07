@@ -5,19 +5,6 @@ const mustachio = require('../');
 
 const assert = chai.assert;
 
-function runSelectSpecs() {
-	runSpec("interpolation.json", require('./specs/interpolation.json'));
-	runSpec("delimiters.json", require('./specs/delimiters.json'));
-	runSpec("sections.json", require('./specs/sections.json'));
-}
-
-function runAllSpecs() {
-	// TODO This will be the day..!
-	fs.readdirSync(path.join(__dirname, 'specs'))
-		.filter(x => x.match(/^[^~].*\.json$/))
-		.forEach(x => runSpec(x, require(`./specs/${x}`)));
-}
-
 function runSpec(name, spec) {
 	describe(name, () => {
 		spec.tests.forEach(test => {
@@ -38,5 +25,7 @@ function runSpec(name, spec) {
 
 
 describe("mustache-spec", () => {
-	runSelectSpecs();
+	fs.readdirSync(path.join(__dirname, 'specs'))
+		.filter(x => x.match(/^[^~].*\.json$/))
+		.forEach(x => runSpec(x, require(`./specs/${x}`)));
 });
