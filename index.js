@@ -37,31 +37,37 @@ Sequence.prototype.render = function* (context) {
 	}
 };
 
-function Section(path, nested, invert) {
+function Section(path, nested) {
 	this.path = path;
 	this.nested = nested;
-	this.invert = !!invert;
 }
 Section.prototype.render = function* (context) {
 	const value = resolve(context, this.path);
 
+	if (!value) return;
+
 	if (Array.isArray(value)) {
-		if (this.invert) {
-			if (!value.length) {
-				yield* this.nested.render(context);
-			}
-		} else {
-			for (var i = 0; i < value.length; ++i) {
-				yield* this.nested.render(context.subcontext(value[i]));
-			}
+		for (var i = 0; i < value.length; ++i) {
+			yield* this.nested.render(context.subcontext(value[i]));
 		}
 	} else if (typeof value === 'object') {
-		if (!!value == this.invert) return;
 		yield* this.nested.render(context.subcontext(value));
 	} else {
-		if (!!value == this.invert) return;
 		yield* this.nested.render(context.subcontext({ ".": value }));
 	}
+};
+
+function NegativeSection(path, nested) {
+	this.path = path;
+	this.nested = nested;
+}
+NegativeSection.prototype.render = function* (context) {
+	const value = resolve(context, this.path);
+
+	if (Array.isArray(value) && value.length) return;
+	if (!Array.isArray(value) && value) return;
+
+	yield* this.nested.render(context);
 };
 
 function Context(data, parent) {
@@ -148,13 +154,20 @@ function getSequence(ctx, str) {
 			ctx.openDelimiter = delimiters[0];
 			ctx.closeDelimiter = delimiters[1];
 			break;
-		case '#':
-		case '^':
+		case '#': {
 			const nested = getSequence(ctx, str.slice(i));
 			i += nested.len;
-			seq.push(new Section(tagContents === '.' ? [] : tagContents.split('.'), nested.ast, fn === '^'));
+			seq.push(new Section(tagContents === '.' ? [] : tagContents.split('.'), nested.ast));
 			break;
+		}
+		case '^': {
+			const nested = getSequence(ctx, str.slice(i));
+			i += nested.len;
+			seq.push(new NegativeSection(tagContents === '.' ? [] : tagContents.split('.'), nested.ast));
+			break;
+		}
 		case '/':
+			// TODO Check closing tag
 			return {
 				ast: new Sequence(seq),
 				len: i
