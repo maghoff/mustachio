@@ -70,13 +70,28 @@ NegativeSection.prototype.render = function* (context) {
 	yield* this.nested.render(context);
 };
 
-function Context(data, parent) {
+function Partial(partialName) {
+	this.partialName = partialName;
+}
+Partial.prototype.render = function* (context) {
+	var partial = context.getPartial(this.partialName);
+	if (!partial) return;
+
+	yield* parse(partial).render(context);
+};
+
+function Context(data, parent, partials) {
 	this.data = data;
 	this.parent = parent;
+	this.partials = partials;
 }
 Context.prototype.get = function (id) {
 	if (this.data.hasOwnProperty(id)) return this.data[id];
 	else if (this.parent) return this.parent.get(id);
+};
+Context.prototype.getPartial = function (id) {
+	if (this.partials && this.partials.hasOwnProperty(id)) return this.partials[id];
+	else if (this.parent) return this.parent.getPartial(id);
 };
 Context.prototype.subcontext = function (data) {
 	return new Context(data, this);
@@ -133,7 +148,7 @@ function getSequence(ctx, str) {
 		case '=': expectedCloseDelimiter = '=' + ctx.closeDelimiter; break;
 		}
 
-		if (fn.match(/[{&=<#/^!]/)) i++;
+		if (fn.match(/[{&=>#/^!]/)) i++;
 		else fn = '';
 
 		const closePos = str.indexOf(expectedCloseDelimiter, i);
@@ -172,6 +187,7 @@ function getSequence(ctx, str) {
 				ast: new Sequence(seq),
 				len: i
 			};
+		case '>': seq.push(new Partial(tagContents));
 		case '!': break;
 		}
 	}
@@ -194,8 +210,8 @@ function parse(str) {
 	return result.ast;
 }
 
-function render(template, data) {
-	var g = parse(template).render(new Context(data));
+function render(template, data, partials) {
+	var g = parse(template).render(new Context(data, null, partials));
 
 	var bufs = [];
 	for (var x = g.next(); !x.done; x = g.next()) {

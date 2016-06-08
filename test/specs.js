@@ -9,12 +9,12 @@ function runSpec(name, spec) {
 	describe(name, () => {
 		spec.tests.forEach(test => {
 			it(test.name, () => {
-				// TODO Support partials in specs
 				assert.equal(
 					test.expected,
 					mustachio.render(
 						test.template,
-						test.data
+						test.data,
+						test.partials
 					),
 					test.desc
 				);
