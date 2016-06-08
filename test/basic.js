@@ -5,21 +5,29 @@ const chai = require('chai');
 
 const assert = chai.assert;
 
+function testRender(template, data, expected) {
+	return done => {
+		mustachio.render(template, data).then(actual => {
+			try {
+				assert.equal(expected, actual);
+				done();
+			}
+			catch (err) {
+				done(err);
+			}
+		})
+		.catch(done);
+	};
+}
+
 describe('render', function() {
-	it('should not interpolate a simple string', function () {
-		assert.equal("apekatt", mustachio.render("apekatt", {}));
-	});
+	it('should not interpolate a simple string', testRender("apekatt", {}, "apekatt"));
+	it('should manage lots of empty interpolations', testRender("ap{{}}ek{{}}at{{}}t", {}, "apekatt"));
+	it('should interpolate', testRender("ape{{feline}}", { feline: "katt" }, "apekatt"));
 
-	it('should manage lots of empty interpolations', function () {
-		assert.equal("apekatt", mustachio.render("ap{{}}ek{{}}at{{}}t", {}));
-	});
-
-	it('should complain about unclosed tag', function () {
-		chai.expect(() => mustachio.render("ape{{katt", {})).to.throw();
-	});
-
-	it('should interpolate', function () {
-		assert.equal("apekatt", mustachio.render("ape{{dyr}}", { dyr: "katt" }));
-		assert.equal("apekatt!", mustachio.render("ape{{dyr}}!", { dyr: "katt" }));
+	it('should complain about unclosed tag', function (done) {
+		mustachio.render("ape{{katt", {})
+			.then(() => chai.fail())
+			.catch(err => { assert.isOk(err); done(); });
 	});
 });

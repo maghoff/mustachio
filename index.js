@@ -1,5 +1,7 @@
 'use strict';
 
+const memoryStreams = require('memory-streams');
+
 function resolve(context, path) {
 	function r(data, path) {
 		if (!data) return;
@@ -210,15 +212,46 @@ function parse(str) {
 	return result.ast;
 }
 
+var Readable = require('readable-stream').Readable;
+
+function GeneratorStream(source) {
+    if (!source.next) throw new TypeError('source must be an iterator');
+
+    Readable.call(this, {objectMode: true});
+    this._source = source;
+}
+GeneratorStream.prototype = Object.create(Readable.prototype, {constructor: {value: GeneratorStream}});
+
+GeneratorStream.prototype._read = function(size) {
+    try {
+        do {
+            var r = this._source.next();
+
+            if (r.done) {
+                this.push(null);
+                break;
+            }
+        } while (this.push(r.value));
+    } catch (e) {
+        this.emit('error', e);
+    }
+};
+
 function render(template, data, partials) {
-	var g = parse(template).render(new Context(data, null, partials));
+	return new Promise((resolve, reject) => {
+		var writer = new memoryStreams.WritableStream();
 
-	var bufs = [];
-	for (var x = g.next(); !x.done; x = g.next()) {
-		bufs.push(x.value);
-	}
+		var g = parse(template).render(new Context(data, null, partials));
+		var reader = new GeneratorStream(g);
 
-	return bufs.join('');
+		reader.pipe(writer);
+		reader.on('end', function () {
+			resolve(writer.toString());
+		});
+
+		reader.on('error', reject);
+		writer.on('error', reject);
+	});
 }
 
 module.exports = {

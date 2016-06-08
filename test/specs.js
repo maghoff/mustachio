@@ -8,16 +8,21 @@ const assert = chai.assert;
 function runSpec(name, spec) {
 	describe(name, () => {
 		spec.tests.forEach(test => {
-			it(test.name, () => {
-				assert.equal(
-					test.expected,
-					mustachio.render(
-						test.template,
-						test.data,
-						test.partials
-					),
-					test.desc
-				);
+			it(test.name, done => {
+				mustachio.render(
+					test.template,
+					test.data,
+					test.partials
+				).then(actual => {
+					try {
+						assert.equal(test.expected, actual, test.desc);
+						done();
+					}
+					catch (err) {
+						done(err);
+					}
+				})
+				.catch(done);
 			});
 		});
 	});

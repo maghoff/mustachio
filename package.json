@@ -19,5 +19,8 @@
     "pretest": "./test/get_spec.sh",
     "test": "mocha"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "memory-streams": "^0.1.0"
+  }
 }
