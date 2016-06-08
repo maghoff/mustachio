@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mustacio demo</title>
+</head>
+<body>
+
+<p>You requested {{path}}</p>
+
+<h1>Headers</h1>
+<dl>
+{{#headers}}
+<dt>{{key}}</dt><dd>{{value}}</dd>
+{{/headers}}
+</dl>
+
+<h1>Numbers</h1>
+<ol>
+{{#numbers}}
+<li>I found this number: {{.}}</li>
+{{/numbers}}
+</ol>
+
+</body>
+</html>
