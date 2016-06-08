@@ -25,9 +25,7 @@ describe('render', function() {
 	it('should manage lots of empty interpolations', testRender("ap{{}}ek{{}}at{{}}t", {}, "apekatt"));
 	it('should interpolate', testRender("ape{{feline}}", { feline: "katt" }, "apekatt"));
 
-	it('should complain about unclosed tag', function (done) {
-		mustachio.render("ape{{katt", {})
-			.then(() => chai.fail())
-			.catch(err => { assert.isOk(err); done(); });
+	it('should complain about unclosed tag', function () {
+		chai.expect(() => mustachio.string("ape{{katt")).to.throw();
 	});
 });

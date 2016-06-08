@@ -238,22 +238,37 @@ GeneratorStream.prototype._read = function(size) {
 };
 
 function render(template, data, partials) {
-	return new Promise((resolve, reject) => {
-		var writer = new memoryStreams.WritableStream();
+	return string(template).render(data, partials).string();
+}
 
-		var g = parse(template).render(new Context(data, null, partials));
-		var reader = new GeneratorStream(g);
+function Template(templateAST) {
+	this.template = templateAST;
+}
+Template.prototype.render = function (data, partials) {
+	const r = this.template.render(new Context(data, null, partials));
+	const reader = new GeneratorStream(r);
 
-		reader.pipe(writer);
-		reader.on('end', function () {
-			resolve(writer.toString());
-		});
+	return {
+		string: () => new Promise((resolve, reject) => {
+			const writer = new memoryStreams.WritableStream();
 
-		reader.on('error', reject);
-		writer.on('error', reject);
-	});
+			reader.pipe(writer);
+			reader.on('end', function () {
+				resolve(writer.toString());
+			});
+
+			reader.on('error', reject);
+			writer.on('error', reject);
+		}),
+		stream: () => reader
+	};
+};
+
+function string(templateString) {
+	return new Template(parse(templateString));
 }
 
 module.exports = {
-	render
+	render,
+	string
 };
