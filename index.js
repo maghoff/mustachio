@@ -212,7 +212,7 @@ function parse(str) {
 	return result.ast;
 }
 
-var Readable = require('readable-stream').Readable;
+var Readable = require('stream').Readable;
 
 function GeneratorStream(source) {
     if (!source.next) throw new TypeError('source must be an iterator');
