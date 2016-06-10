@@ -122,7 +122,7 @@ function* escape(str) {
 	}
 }
 
-function* scanner(str) {
+function* raw_scanner(str) {
 	const ctx = {
 		openDelimiter: '{{',
 		closeDelimiter: '}}'
@@ -133,6 +133,7 @@ function* scanner(str) {
 	function literal(text) { return { type: 'literal', text: text } }
 	function interpolation(path, verbatim) { return { type: 'interpolation', path: path, verbatim: !!verbatim } }
 	function partial(name) { return { type: 'partial', name: name } }
+	function comment() { return { type: 'comment' } }
 
 	function section_open(path) { return { type: 'section_open', path: path } }
 	function section_neg_open(path) { return { type: 'section_neg_open', path: path } }
@@ -193,9 +194,42 @@ function* scanner(str) {
 			yield new section_close(tagContents === '.' ? [] : tagContents.split('.'));
 			break;
 		case '>': yield partial(tagContents); break;
-		case '!': break;
+		case '!': yield comment(); break;
 		}
 	}
+}
+
+function is_standalone(type) {
+	return type === 'section_open' ||
+		type === 'section_neg_open' ||
+		type === 'section_close' ||
+		type === 'partial' ||
+		type === 'comment';
+}
+
+function* scanner(str) {
+	const buffer = [];
+
+	const tokens = raw_scanner(str);
+	for (var i = tokens.next(); !i.done; i = tokens.next()) {
+		const token = i.value;
+		buffer.push(token);
+		if (buffer.length < 3) continue;
+		if (buffer.length > 3) yield buffer.unshift();
+
+		if (buffer[0].type === 'literal' &&
+			is_standalone(buffer[1].type) &&
+			buffer[2].type === 'literal')
+		{
+			if (buffer[0].text.match(/\n\s*$/) &&
+				buffer[2].text.match(/^\s*\r?\n/)
+			) {
+				// Strip
+			}
+		}
+	}
+
+	while (buffer.length) yield buffer.unshift();
 }
 
 function parse(str) {
