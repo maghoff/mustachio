@@ -122,22 +122,32 @@ function* escape(str) {
 	}
 }
 
-function getSequence(ctx, str) {
+function* scanner(str) {
+	const ctx = {
+		openDelimiter: '{{',
+		closeDelimiter: '}}'
+	};
+
 	var i = 0;
-	var seq = [];
+
+	function literal(text) { return { type: 'literal', text: text } }
+	function interpolation(path, verbatim) { return { type: 'interpolation', path: path, verbatim: !!verbatim } }
+	function partial(name) { return { type: 'partial', name: name } }
+
+	function section_open(path) { return { type: 'section_open', path: path } }
+	function section_neg_open(path) { return { type: 'section_neg_open', path: path } }
+	function section_close(path) { return { type: 'section_close', path: path } }
 
 	while (i < str.length) {
 		const openPos = str.indexOf(ctx.openDelimiter, i);
 
 		if (openPos === -1) {
-			seq.push(new Literal(str.slice(i)));
+			yield literal(str.slice(i));
 			i = str.length;
 			break;
 		}
 
-		if (openPos > i) {
-			seq.push(new Literal(str.slice(i, openPos)));
-		}
+		if (openPos > i) yield literal(str.slice(i, openPos));
 
 		i = openPos + ctx.openDelimiter.length;
 
@@ -163,55 +173,81 @@ function getSequence(ctx, str) {
 		i = closePos + expectedCloseDelimiter.length;
 
 		switch (fn) {
-		case '': seq.push(new Interpolation(tagContents === '.' ? [] : tagContents.split('.'))); break;
+		case '': yield interpolation(tagContents === '.' ? [] : tagContents.split('.')); break;
 		case '{':
 		case '&':
-			seq.push(new Interpolation(tagContents === '.' ? [] : tagContents.split('.'), true)); break;
+			yield interpolation(tagContents === '.' ? [] : tagContents.split('.'), true); break;
 		case '=':
 			const delimiters = tagContents.split(/\s+/);
 			if (delimiters.length !== 2) throw new Error(`Invalid delimiter specification: ${JSON.stringify(tagContents)}`);
 			ctx.openDelimiter = delimiters[0];
 			ctx.closeDelimiter = delimiters[1];
 			break;
-		case '#': {
-			const nested = getSequence(ctx, str.slice(i));
-			i += nested.len;
-			seq.push(new Section(tagContents === '.' ? [] : tagContents.split('.'), nested.ast));
+		case '#':
+			yield section_open(tagContents === '.' ? [] : tagContents.split('.'));
 			break;
-		}
-		case '^': {
-			const nested = getSequence(ctx, str.slice(i));
-			i += nested.len;
-			seq.push(new NegativeSection(tagContents === '.' ? [] : tagContents.split('.'), nested.ast));
+		case '^':
+			yield new section_neg_open(tagContents === '.' ? [] : tagContents.split('.'));
 			break;
-		}
 		case '/':
-			// TODO Check closing tag
-			return {
-				ast: new Sequence(seq),
-				len: i
-			};
-		case '>': seq.push(new Partial(tagContents));
+			yield new section_close(tagContents === '.' ? [] : tagContents.split('.'));
+			break;
+		case '>': yield partial(tagContents); break;
 		case '!': break;
 		}
 	}
-
-	return {
-		ast: new Sequence(seq),
-		len: i
-	};
 }
 
 function parse(str) {
-	const ctx = {
-		openDelimiter: '{{',
-		closeDelimiter: '}}'
-	};
+	const tokens = scanner(str);
+	const sequenceStack = [];
+	const tagStack = [];
+	sequenceStack.push([]);
 
-	const result = getSequence(ctx, str);
+	for (var i = tokens.next(); !i.done; i = tokens.next()) {
+		const token = i.value;
+		const top = sequenceStack[sequenceStack.length - 1];
 
-	if (result.len !== str.length) throw new Error('Unable to fully parse input');
-	return result.ast;
+		switch (token.type) {
+		case 'literal': top.push(new Literal(token.text)); break;
+		case 'interpolation': top.push(new Interpolation(token.path, token.verbatim)); break;
+		case 'partial': top.push(new Partial(token.name)); break;
+
+		case 'section_open': {
+			const nestedSequence = [];
+			top.push(new Section(token.path, new Sequence(nestedSequence)));
+			tagStack.push(token.path);
+			sequenceStack.push(nestedSequence);
+			break;
+		}
+
+		case 'section_neg_open': {
+			const nestedSequence = [];
+			top.push(new NegativeSection(token.path, new Sequence(nestedSequence)));
+			tagStack.push(token.path);
+			sequenceStack.push(nestedSequence);
+			break;
+		}
+
+		case 'section_close': {
+			if (sequenceStack.length < 1) throw new Error("Too many closing tags");
+			sequenceStack.pop();
+
+			const openingTag = tagStack.pop();
+			if (token.path.join('.') != openingTag.join('.')) {
+				throw new Error(`Closing tag ${JSON.stringify(token.path)} not ` +
+					`matching opening tag ${JSON.stringify(openingTag)}`);
+			}
+			break;
+		}
+		}
+	}
+
+	if (sequenceStack.length !== 1) {
+		throw new Error("Some opened sections were not closed");
+	}
+
+	return new Sequence(sequenceStack[0]);
 }
 
 var Readable = require('stream').Readable;
