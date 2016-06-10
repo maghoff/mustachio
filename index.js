@@ -122,7 +122,7 @@ function* escape(str) {
 	}
 }
 
-function* raw_scanner(str) {
+function* scanner(str) {
 	const ctx = {
 		openDelimiter: '{{',
 		closeDelimiter: '}}'
@@ -174,15 +174,16 @@ function* raw_scanner(str) {
 		i = closePos + expectedCloseDelimiter.length;
 
 		switch (fn) {
-		case '': yield interpolation(tagContents === '.' ? [] : tagContents.split('.')); break;
+		case '': yield interpolation(tagContents === '.' ? [] : tagContents.split('.'), false); break;
 		case '{':
 		case '&':
 			yield interpolation(tagContents === '.' ? [] : tagContents.split('.'), true); break;
 		case '=':
-			const delimiters = tagContents.split(/\s+/);
+			const delimiters = tagContents.split(/[\t ]+/);
 			if (delimiters.length !== 2) throw new Error(`Invalid delimiter specification: ${JSON.stringify(tagContents)}`);
 			ctx.openDelimiter = delimiters[0];
 			ctx.closeDelimiter = delimiters[1];
+			yield comment(); // This makes standalone lines work for delimiter tags
 			break;
 		case '#':
 			yield section_open(tagContents === '.' ? [] : tagContents.split('.'));
@@ -207,33 +208,84 @@ function is_standalone(type) {
 		type === 'comment';
 }
 
-function* scanner(str) {
-	const buffer = [];
+function* standalone_tags(tokens) {
+	var preText = "";
+	var standaloneTag = null;
+	var blankLine = true;
+	var hasStandalone = false;
 
-	const tokens = raw_scanner(str);
 	for (var i = tokens.next(); !i.done; i = tokens.next()) {
 		const token = i.value;
-		buffer.push(token);
-		if (buffer.length < 3) continue;
-		if (buffer.length > 3) yield buffer.unshift();
 
-		if (buffer[0].type === 'literal' &&
-			is_standalone(buffer[1].type) &&
-			buffer[2].type === 'literal')
-		{
-			if (buffer[0].text.match(/\n\s*$/) &&
-				buffer[2].text.match(/^\s*\r?\n/)
-			) {
-				// Strip
+		if (token.type === 'literal') {
+			if (standaloneTag) {
+				if (blankLine && token.text.match(/^[\t ]*\r?\n/)) {
+					yield { type: 'literal', text: preText.replace(/[\t ]*$/, '') };
+					yield standaloneTag;
+
+					token.text = token.text.replace(/^[\t ]*\r?\n/, '');
+				} else {
+					if (preText.length) yield { type: 'literal', text: preText };
+					yield standaloneTag;
+				}
+				preText = "";
+				standaloneTag = null;
+				hasStandalone = false;
+				if (token.text === '') continue;
 			}
+
+			if (token.text.match(/\n[\t ]*$/)) {
+				preText += token.text;
+				blankLine = true;
+				hasStandalone = false;
+			} else if (token.text.match(/^[\t ]*$/)) {
+				if (blankLine) preText += token.text;
+				else yield token;
+			} else {
+				yield { type: 'literal', text: preText + token.text };
+				preText = "";
+				blankLine = false;
+			}
+		} else if (is_standalone(token.type)) {
+			if (standaloneTag) {
+				if (preText.length) yield { type: 'literal', text: preText };
+				preText = "";
+
+				yield standaloneTag;
+				yield token;
+				standaloneTag = null;
+				blankLine = false;
+			} else {
+				if (hasStandalone) yield token;
+				else standaloneTag = token;
+			}
+			hasStandalone = true;
+		} else {
+			if (preText.length) yield { type: 'literal', text: preText };
+			preText = "";
+			if (standaloneTag) yield standaloneTag;
+			standaloneTag = null;
+			if (token.type !== 'comment') yield token;
+			blankLine = false;
 		}
 	}
 
-	while (buffer.length) yield buffer.unshift();
+	if (blankLine && standaloneTag) {
+		yield { type: 'literal', text: preText.replace(/[\t ]*$/, '') };
+		yield standaloneTag;
+		preText = "";
+		standaloneTag = null;
+	}
+
+	if (preText.length) yield { type: 'literal', text: preText };
+	preText = "";
+
+	if (standaloneTag) yield standaloneTag;
+	standaloneTag = null;
 }
 
 function parse(str) {
-	const tokens = scanner(str);
+	const tokens = standalone_tags(scanner(str));
 	const sequenceStack = [];
 	const tagStack = [];
 	sequenceStack.push([]);
