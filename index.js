@@ -4,7 +4,7 @@ const memoryStreams = require('memory-streams');
 
 function resolve(context, path) {
 	function r(data, path) {
-		if (!data) return;
+		if (data == null) return;
 		if (path.length === 0) return data;
 		return r(data[path[0]], path.slice(1));
 	}
@@ -14,7 +14,9 @@ function resolve(context, path) {
 }
 
 function stringify(value) {
-	return "" + (value || "");
+	if (typeof value === 'number') return "" + value;
+	if (!value) return "";
+	return "" + value;
 }
 
 function Literal(str) { this.str = str; }
