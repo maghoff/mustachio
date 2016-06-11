@@ -19,6 +19,11 @@ function stringify(value) {
 	return "" + value;
 }
 
+function LineStart(str) { this.str = str; }
+LineStart.prototype.render = function* (context) {
+	if (context.margin) yield context.margin;
+}
+
 function Literal(str) { this.str = str; }
 Literal.prototype.render = function* (_context) { yield this.str; }
 
@@ -74,14 +79,17 @@ NegativeSection.prototype.render = function* (context) {
 	yield* this.nested.render(context);
 };
 
-function Partial(partialName) {
+function Partial(partialName, margin) {
 	this.partialName = partialName;
+	this.margin = margin;
 }
 Partial.prototype.render = function* (context) {
 	var partial = context.getPartial(this.partialName);
 	if (!partial) return;
 
-	yield* parse(partial).render(context);
+	const subcontext = context.subcontext({});
+	subcontext.margin = (context.margin || "") + (this.margin || "");
+	yield* parse(partial).render(subcontext);
 };
 
 function Context(data, parent, partials) {
@@ -244,14 +252,22 @@ function* standalone_tags(tokens) {
 		const token = i.value;
 
 		if (token.type === LINE_START) {
-			if (blankSoFar && standaloneTokenOnLine) {
-				buf.length = 0;
-				yield standaloneTokenOnLine;
-			} else {
-				yield* giveUpLine();
+			if (blankSoFar) {
+				if (standaloneTokenOnLine) {
+					if (standaloneTokenOnLine.type === PARTIAL) {
+						const i = buf.slice(1).findIndex(x => x.type !== LITERAL) + 1;
+						const margin = buf.slice(1, i).map(x => x.text).join('');
+						standaloneTokenOnLine.margin = margin;
+					}
+					buf.length = 0;
+					yield standaloneTokenOnLine;
+				} else {
+					yield* giveUpLine();
+				}
 			}
 			blankSoFar = true;
 			standaloneTokenOnLine = null;
+			buf.push(token);
 		} else if (token.type === LITERAL) {
 			if (blankSoFar) {
 				buf.push(token);
@@ -281,6 +297,12 @@ function* standalone_tags(tokens) {
 		}
 	}
 	if (blankSoFar && standaloneTokenOnLine) {
+		if (standaloneTokenOnLine.type === PARTIAL) {
+			const i = buf.slice(1).findIndex(x => x.type !== LITERAL) + 1;
+			const margin = buf.slice(1, i).map(x => x.text).join('');
+			standaloneTokenOnLine.margin = margin;
+		}
+		buf.length = 0;
 		yield standaloneTokenOnLine;
 	}
 }
@@ -296,9 +318,10 @@ function parse(str) {
 		const top = sequenceStack[sequenceStack.length - 1];
 
 		switch (token.type) {
+		case LINE_START: top.push(new LineStart()); break;
 		case LITERAL: top.push(new Literal(token.text)); break;
 		case INTERPOLATION: top.push(new Interpolation(token.path, token.verbatim)); break;
-		case PARTIAL: top.push(new Partial(token.name)); break;
+		case PARTIAL: top.push(new Partial(token.name, token.margin || "")); break;
 
 		case SECTION_OPEN: {
 			const nestedSequence = [];
