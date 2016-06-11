@@ -20,6 +20,9 @@
     "test": "mocha"
   },
   "license": "MIT",
+  "engines": {
+	"node": ">=4.0.0"
+  },
   "dependencies": {
     "memory-streams": "^0.1.0"
   }
