@@ -347,18 +347,20 @@ function GeneratorStream(source) {
 GeneratorStream.prototype = Object.create(Readable.prototype, {constructor: {value: GeneratorStream}});
 
 GeneratorStream.prototype._read = function(size) {
-    try {
-        do {
-            var r = this._source.next();
+	try {
+		// TODO This implementation does not buffer aggressively enough, and
+		// the target stream typically does not either
+		do {
+			var r = this._source.next();
 
-            if (r.done) {
-                this.push(null);
-                break;
-            }
-        } while (this.push(r.value));
-    } catch (e) {
-        this.emit('error', e);
-    }
+			if (r.done) {
+				this.push(null);
+				break;
+			}
+		} while (this.push(r.value));
+	} catch (e) {
+		this.emit('error', e);
+	}
 };
 
 function render(template, data, partials) {
