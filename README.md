@@ -1,6 +1,6 @@
 Mustachio is an experimental pull-based implementation of the Mustache templating language.
 
-This implementation is tested against [version 1.1][v1.1.3] of [the Mustache spec][spec] and is presently mostly compliant.
+Mustachio is fully compliant with [version 1.1][v1.1.3] of [the Mustache spec][spec], but there are some interesting differences between Mustachio and the original Mustache.js.
 
 [v1.1.3]: https://github.com/mustache/spec/tree/v1.1.3
 [spec]: https://github.com/mustache/spec
