@@ -122,6 +122,15 @@ function* escape(str) {
 	}
 }
 
+const LINE_START = 1;
+const LITERAL = 2;
+const INTERPOLATION = 3;
+const PARTIAL = 4;
+const COMMENT = 5;
+const SECTION_OPEN = 6;
+const SECTION_NEG_OPEN = 7;
+const SECTION_CLOSE = 8;
+
 function* scanner(str) {
 	const ctx = {
 		openDelimiter: '{{',
@@ -130,15 +139,15 @@ function* scanner(str) {
 
 	var i = 0;
 
-	function line_start() { return { type: 'line_start' } }
-	function literal(text) { return { type: 'literal', text: text } }
-	function interpolation(path, verbatim) { return { type: 'interpolation', path: path, verbatim: !!verbatim } }
-	function partial(name) { return { type: 'partial', name: name } }
-	function comment() { return { type: 'comment' } }
+	function line_start() { return { type: LINE_START } }
+	function literal(text) { return { type: LITERAL, text: text } }
+	function interpolation(path, verbatim) { return { type: INTERPOLATION, path: path, verbatim: !!verbatim } }
+	function partial(name) { return { type: PARTIAL, name: name } }
+	function comment() { return { type: COMMENT } }
 
-	function section_open(path) { return { type: 'section_open', path: path } }
-	function section_neg_open(path) { return { type: 'section_neg_open', path: path } }
-	function section_close(path) { return { type: 'section_close', path: path } }
+	function section_open(path) { return { type: SECTION_OPEN, path: path } }
+	function section_neg_open(path) { return { type: SECTION_NEG_OPEN, path: path } }
+	function section_close(path) { return { type: SECTION_CLOSE, path: path } }
 
 	function* split_lines(buf) {
 		var i = 0;
@@ -215,11 +224,11 @@ function* scanner(str) {
 }
 
 function is_standalone(type) {
-	return type === 'section_open' ||
-		type === 'section_neg_open' ||
-		type === 'section_close' ||
-		type === 'partial' ||
-		type === 'comment';
+	return type === SECTION_OPEN ||
+		type === SECTION_NEG_OPEN ||
+		type === SECTION_CLOSE ||
+		type === PARTIAL ||
+		type === COMMENT;
 }
 
 function* standalone_tags(tokens) {
@@ -234,7 +243,7 @@ function* standalone_tags(tokens) {
 	for (var i = tokens.next(); !i.done; i = tokens.next()) {
 		const token = i.value;
 
-		if (token.type === 'line_start') {
+		if (token.type === LINE_START) {
 			if (blankSoFar && standaloneTokenOnLine) {
 				buf.length = 0;
 				yield standaloneTokenOnLine;
@@ -243,7 +252,7 @@ function* standalone_tags(tokens) {
 			}
 			blankSoFar = true;
 			standaloneTokenOnLine = null;
-		} else if (token.type === 'literal') {
+		} else if (token.type === LITERAL) {
 			if (blankSoFar) {
 				buf.push(token);
 
@@ -287,11 +296,11 @@ function parse(str) {
 		const top = sequenceStack[sequenceStack.length - 1];
 
 		switch (token.type) {
-		case 'literal': top.push(new Literal(token.text)); break;
-		case 'interpolation': top.push(new Interpolation(token.path, token.verbatim)); break;
-		case 'partial': top.push(new Partial(token.name)); break;
+		case LITERAL: top.push(new Literal(token.text)); break;
+		case INTERPOLATION: top.push(new Interpolation(token.path, token.verbatim)); break;
+		case PARTIAL: top.push(new Partial(token.name)); break;
 
-		case 'section_open': {
+		case SECTION_OPEN: {
 			const nestedSequence = [];
 			top.push(new Section(token.path, new Sequence(nestedSequence)));
 			tagStack.push(token.path);
@@ -299,7 +308,7 @@ function parse(str) {
 			break;
 		}
 
-		case 'section_neg_open': {
+		case SECTION_NEG_OPEN: {
 			const nestedSequence = [];
 			top.push(new NegativeSection(token.path, new Sequence(nestedSequence)));
 			tagStack.push(token.path);
@@ -307,7 +316,7 @@ function parse(str) {
 			break;
 		}
 
-		case 'section_close': {
+		case SECTION_CLOSE: {
 			if (sequenceStack.length < 1) throw new Error("Too many closing tags");
 			sequenceStack.pop();
 
