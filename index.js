@@ -231,48 +231,52 @@ function* scanner(str) {
 	}
 }
 
-function is_standalone(type) {
-	return type === SECTION_OPEN ||
-		type === SECTION_NEG_OPEN ||
-		type === SECTION_CLOSE ||
-		type === PARTIAL ||
-		type === COMMENT;
-}
-
 function* standalone_tags(tokens) {
 	var blankSoFar = true, standaloneTokenOnLine = null;
 	var buf = [];
+
+	function is_standalone(type) {
+		return type === SECTION_OPEN ||
+			type === SECTION_NEG_OPEN ||
+			type === SECTION_CLOSE ||
+			type === PARTIAL ||
+			type === COMMENT;
+	}
 
 	function* giveUpLine() {
 		while (buf.length) yield buf.shift();
 		blankSoFar = false;
 	}
 
+	function* endOfLine() {
+		if (blankSoFar) {
+			if (standaloneTokenOnLine) {
+				if (standaloneTokenOnLine.type === PARTIAL) {
+					const i = buf.findIndex((x, i) => i >= 1 && x.type !== LITERAL);
+					const margin = buf.slice(1, i).map(x => x.text).join('');
+					standaloneTokenOnLine.margin = margin;
+				}
+				buf.length = 0;
+				yield standaloneTokenOnLine;
+			} else {
+				yield* giveUpLine();
+			}
+		}
+		blankSoFar = true;
+		standaloneTokenOnLine = null;
+	}
+
 	for (var i = tokens.next(); !i.done; i = tokens.next()) {
 		const token = i.value;
 
 		if (token.type === LINE_START) {
-			if (blankSoFar) {
-				if (standaloneTokenOnLine) {
-					if (standaloneTokenOnLine.type === PARTIAL) {
-						const i = buf.slice(1).findIndex(x => x.type !== LITERAL) + 1;
-						const margin = buf.slice(1, i).map(x => x.text).join('');
-						standaloneTokenOnLine.margin = margin;
-					}
-					buf.length = 0;
-					yield standaloneTokenOnLine;
-				} else {
-					yield* giveUpLine();
-				}
-			}
-			blankSoFar = true;
-			standaloneTokenOnLine = null;
+			yield* endOfLine();
 			buf.push(token);
 		} else if (token.type === LITERAL) {
 			if (blankSoFar) {
 				buf.push(token);
 
-				const spaceOnly = token.text.match(/^[ \t\r\n]*$/);
+				const spaceOnly = token.text.search(/[^\s]/) === -1;
 				blankSoFar = blankSoFar && spaceOnly;
 
 				if (!blankSoFar) yield* giveUpLine();
@@ -296,15 +300,11 @@ function* standalone_tags(tokens) {
 			yield token;
 		}
 	}
-	if (blankSoFar && standaloneTokenOnLine) {
-		if (standaloneTokenOnLine.type === PARTIAL) {
-			const i = buf.slice(1).findIndex(x => x.type !== LITERAL) + 1;
-			const margin = buf.slice(1, i).map(x => x.text).join('');
-			standaloneTokenOnLine.margin = margin;
-		}
-		buf.length = 0;
-		yield standaloneTokenOnLine;
-	}
+
+	// Avoid yielding LINE_START as the last token of a file
+	if (buf.length === 1) buf.shift();
+
+	yield* endOfLine();
 }
 
 function parse(str) {
