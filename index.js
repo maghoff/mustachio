@@ -130,6 +130,7 @@ function* scanner(str) {
 
 	var i = 0;
 
+	function line_start() { return { type: 'line_start' } }
 	function literal(text) { return { type: 'literal', text: text } }
 	function interpolation(path, verbatim) { return { type: 'interpolation', path: path, verbatim: !!verbatim } }
 	function partial(name) { return { type: 'partial', name: name } }
@@ -139,16 +140,29 @@ function* scanner(str) {
 	function section_neg_open(path) { return { type: 'section_neg_open', path: path } }
 	function section_close(path) { return { type: 'section_close', path: path } }
 
+	function* split_lines(buf) {
+		var i = 0;
+		while (i < buf.length) {
+			const newLinePos = buf.indexOf('\n', i);
+			if (newLinePos === -1) break;
+			yield literal(buf.slice(i, newLinePos+1));
+			yield line_start();
+			i = newLinePos + 1;
+		}
+		if (i < buf.length) yield literal(buf.slice(i));
+	}
+
+	yield line_start();
 	while (i < str.length) {
 		const openPos = str.indexOf(ctx.openDelimiter, i);
 
 		if (openPos === -1) {
-			yield literal(str.slice(i));
+			yield* split_lines(str.slice(i));
 			i = str.length;
 			break;
 		}
 
-		if (openPos > i) yield literal(str.slice(i, openPos));
+		if (openPos > i) yield* split_lines(str.slice(i, openPos));
 
 		i = openPos + ctx.openDelimiter.length;
 
@@ -209,79 +223,57 @@ function is_standalone(type) {
 }
 
 function* standalone_tags(tokens) {
-	var preText = "";
-	var standaloneTag = null;
-	var blankLine = true;
-	var hasStandalone = false;
+	var blankSoFar = true, standaloneTokenOnLine = null;
+	var buf = [];
+
+	function* giveUpLine() {
+		while (buf.length) yield buf.shift();
+		blankSoFar = false;
+	}
 
 	for (var i = tokens.next(); !i.done; i = tokens.next()) {
 		const token = i.value;
 
-		if (token.type === 'literal') {
-			if (standaloneTag) {
-				if (blankLine && token.text.match(/^[\t ]*\r?\n/)) {
-					yield { type: 'literal', text: preText.replace(/[\t ]*$/, '') };
-					yield standaloneTag;
-
-					token.text = token.text.replace(/^[\t ]*\r?\n/, '');
-				} else {
-					if (preText.length) yield { type: 'literal', text: preText };
-					yield standaloneTag;
-				}
-				preText = "";
-				standaloneTag = null;
-				hasStandalone = false;
-				if (token.text === '') continue;
-			}
-
-			if (token.text.match(/\n[\t ]*$/)) {
-				preText += token.text;
-				blankLine = true;
-				hasStandalone = false;
-			} else if (token.text.match(/^[\t ]*$/)) {
-				if (blankLine) preText += token.text;
-				else yield token;
+		if (token.type === 'line_start') {
+			if (blankSoFar && standaloneTokenOnLine) {
+				buf.length = 0;
+				yield standaloneTokenOnLine;
 			} else {
-				yield { type: 'literal', text: preText + token.text };
-				preText = "";
-				blankLine = false;
+				yield* giveUpLine();
+			}
+			blankSoFar = true;
+			standaloneTokenOnLine = null;
+		} else if (token.type === 'literal') {
+			if (blankSoFar) {
+				buf.push(token);
+
+				const spaceOnly = token.text.match(/^[ \t\r\n]*$/);
+				blankSoFar = blankSoFar && spaceOnly;
+
+				if (!blankSoFar) yield* giveUpLine();
+			} else {
+				yield token;
 			}
 		} else if (is_standalone(token.type)) {
-			if (standaloneTag) {
-				if (preText.length) yield { type: 'literal', text: preText };
-				preText = "";
-
-				yield standaloneTag;
-				yield token;
-				standaloneTag = null;
-				blankLine = false;
+			if (blankSoFar) {
+				if (!standaloneTokenOnLine) {
+					standaloneTokenOnLine = token;
+					buf.push(token);
+				} else {
+					yield* giveUpLine();
+					yield token;
+				}
 			} else {
-				if (hasStandalone) yield token;
-				else standaloneTag = token;
+				yield token;
 			}
-			hasStandalone = true;
 		} else {
-			if (preText.length) yield { type: 'literal', text: preText };
-			preText = "";
-			if (standaloneTag) yield standaloneTag;
-			standaloneTag = null;
-			if (token.type !== 'comment') yield token;
-			blankLine = false;
+			if (blankSoFar) yield* giveUpLine();
+			yield token;
 		}
 	}
-
-	if (blankLine && standaloneTag) {
-		yield { type: 'literal', text: preText.replace(/[\t ]*$/, '') };
-		yield standaloneTag;
-		preText = "";
-		standaloneTag = null;
+	if (blankSoFar && standaloneTokenOnLine) {
+		yield standaloneTokenOnLine;
 	}
-
-	if (preText.length) yield { type: 'literal', text: preText };
-	preText = "";
-
-	if (standaloneTag) yield standaloneTag;
-	standaloneTag = null;
 }
 
 function parse(str) {
