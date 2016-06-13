@@ -17,18 +17,16 @@ Template.prototype.render = function (data, partials) {
 	const reader = new GeneratorStream(r);
 
 	return {
-		string: () => new Promise((resolve, reject) => {
+		string: () => {
 			const chunks = [];
 
-			reader.on('end', function () {
-				resolve(chunks.join(''));
-			});
-			reader.on('data', function (chunk) {
+			var chunk;
+			while (null !== (chunk = reader.read())) {
 				chunks.push(chunk);
-			});
+			}
 
-			reader.on('error', reject);
-		}),
+			return chunks.join('');
+		},
 		stream: () => reader
 	};
 };
