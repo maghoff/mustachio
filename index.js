@@ -1,6 +1,5 @@
 'use strict';
 
-const memoryStreams = require('memory-streams');
 const GeneratorStream = require('./lib/generator-stream');
 const parser = require('./lib/parser');
 const Context = require('./lib/context');
@@ -19,15 +18,16 @@ Template.prototype.render = function (data, partials) {
 
 	return {
 		string: () => new Promise((resolve, reject) => {
-			const writer = new memoryStreams.WritableStream();
+			const chunks = [];
 
-			reader.pipe(writer);
 			reader.on('end', function () {
-				resolve(writer.toString());
+				resolve(chunks.join(''));
+			});
+			reader.on('data', function (chunk) {
+				chunks.push(chunk);
 			});
 
 			reader.on('error', reject);
-			writer.on('error', reject);
 		}),
 		stream: () => reader
 	};
