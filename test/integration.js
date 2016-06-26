@@ -22,4 +22,17 @@ describe('integration', function() {
 		"{{#data}}{{.}}{{/data}}",
 		{ data: Promise.resolve(function* () { yield "ape"; yield "katt"; }) },
 		"apekatt"));
+
+	it('should recursively resolve elements of arrays', testRender(
+		"{{#data}}{{x}}{{/data}}",
+		{ data: [ {x:"ape"}, () => { return {x:"katt"}; } ] },
+		"apekatt"));
+
+	it('should recursively resolve elements of generators', testRender(
+		"{{#data}}{{x}}{{/data}}",
+		{ data: function* () {
+			yield { x: "ape" };
+			yield () => ({ x: "katt" });
+		}},
+		"apekatt"));
 });
