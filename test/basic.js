@@ -2,17 +2,8 @@
 
 const mustachio = require('../');
 const chai = require('chai');
-
-const assert = chai.assert;
-
-function testRender(template, data, expected) {
-	return done => {
-		mustachio.string(template).render(data).string().then(actual => {
-			assert.equal(expected, actual);
-			done();
-		}).catch(done);
-	};
-}
+const util = require('./util');
+const testRender = util.testRender;
 
 describe('render', function() {
 	it('should not interpolate a simple string', testRender("apekatt", {}, "apekatt"));

@@ -1,18 +1,8 @@
 'use strict';
 
 const mustachio = require('../');
-const chai = require('chai');
-
-const assert = chai.assert;
-
-function testRender(template, data, expected) {
-	return done => {
-		mustachio.string(template).render(data).string().then(actual => {
-			assert.equal(expected, actual);
-			done();
-		}).catch(done);
-	};
-}
+const util = require('./util');
+const testRender = util.testRender, expectError = util.expectError;
 
 describe('generator', function() {
 	it('should resolve a simple generator function data item', testRender(
@@ -33,4 +23,11 @@ describe('generator', function() {
 			};
 		} },
 		"ape"));
+
+	it('should propagate error', expectError(
+		"{{#data}}{{#.}}{{.}}{{/.}}{{/data}}",
+		{ data: function* () {
+			yield "ape";
+			throw new Error("katt");
+		} }));
 });
