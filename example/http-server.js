@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
+'use strict';
+
 const fs = require('fs');
 const http = require('http');
 const mustachio = require('../');
 
 const template = mustachio.string(fs.readFileSync(`${__dirname}/template.mu.html`, 'utf8'));
-const numbers = [];
-for (var i=0; i < 100000; ++i) numbers.push(i);
 
 const server = http.createServer((req, res) => {
 	const start = new Date();
@@ -20,7 +20,9 @@ const server = http.createServer((req, res) => {
 		headers:
 			Object.keys(req.headers)
 				.map(key => ({ key: key, value: req.headers[key] })),
-		numbers: numbers
+		numbers: function* () {
+			for (let i = 0; i < 100000; ++i) yield i;
+		}
 	};
 	template.render(data).stream().pipe(res);
 });
