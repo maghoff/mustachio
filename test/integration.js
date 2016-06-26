@@ -22,4 +22,14 @@ describe('integration', function() {
 			yield "katt";
 		} },
 		"apekatt"));
+
+	it('should resolve functions resolved in promises', testRender(
+		"{{data}}",
+		{ data: Promise.resolve(() => "apekatt") },
+		"apekatt"));
+
+	it('should resolve generators resolved in promises', testRender(
+		"{{#data}}{{.}}{{/data}}",
+		{ data: Promise.resolve(function* () { yield "ape"; yield "katt"; }) },
+		"apekatt"));
 });

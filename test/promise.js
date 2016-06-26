@@ -20,4 +20,14 @@ describe('promise', function() {
 		"{{data}}",
 		{ data: Promise.resolve("apekatt") },
 		"apekatt"));
+
+	it('should resolve a non-terminal promise', testRender(
+		"{{nested.data}}",
+		{ nested: Promise.resolve({ data: "apekatt" }) },
+		"apekatt"));
+
+	it('should resolve nested promises', testRender(
+		"{{data}}",
+		{ data: Promise.resolve(Promise.resolve(Promise.resolve("apekatt"))) },
+		"apekatt"));
 });
