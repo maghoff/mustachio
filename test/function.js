@@ -37,4 +37,14 @@ describe('function', function() {
 		"{{#array}}{{.}}{{/array}}",
 		{ array: () => ["ape", () => "katt"] },
 		"apekatt"));
+
+	it('should have `this` set correctly', testRender(
+		"{{data}}",
+		{ data: "apekatt", f: function () { return this.data; } },
+		"apekatt"));
+
+	it('should have `this` set correctly when nested', testRender(
+		"{{#a}}{{#b}}{{#c}}{{d}}{{/c}}{{/b}}{{/a}}",
+		{ a: { b: { c: { d: function () { return this.x; }, x: "apekatt" } } } },
+		"apekatt"));
 });
