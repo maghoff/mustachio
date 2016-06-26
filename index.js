@@ -18,14 +18,12 @@ Template.prototype.render = function (data, partials) {
 
 	return {
 		string: () => {
-			const chunks = [];
-
-			var chunk;
-			while (null !== (chunk = reader.read())) {
-				chunks.push(chunk);
-			}
-
-			return chunks.join('');
+			return new Promise((resolve, reject) => {
+				const buf = [];
+				reader.on('data', chunk => buf.push(chunk));
+				reader.on('error', reject);
+				reader.on('end', () => resolve(buf.join('')));
+			});
 		},
 		stream: () => reader
 	};

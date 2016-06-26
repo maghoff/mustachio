@@ -1,5 +1,6 @@
 'use strict';
 
+const stream = require('stream');
 const mustachio = require('../');
 const chai = require('chai');
 
@@ -14,12 +15,9 @@ function testRender(template, data, expected) {
 	};
 }
 
-describe('integration', function() {
-	it('should resolve functions yielded from generators', testRender(
-		"{{#data}}{{.}}{{/data}}",
-		{ data: function* () {
-			yield () => "ape";
-			yield "katt";
-		} },
+describe('promise', function() {
+	it('should resolve a simple promise', testRender(
+		"{{data}}",
+		{ data: Promise.resolve("apekatt") },
 		"apekatt"));
 });

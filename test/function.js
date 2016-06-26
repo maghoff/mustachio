@@ -6,9 +6,11 @@ const chai = require('chai');
 const assert = chai.assert;
 
 function testRender(template, data, expected) {
-	return () => {
-		const actual = mustachio.render(template, data);
-		assert.equal(expected, actual);
+	return done => {
+		mustachio.string(template).render(data).string().then(actual => {
+			assert.equal(expected, actual);
+			done();
+		}).catch(done);
 	};
 }
 
