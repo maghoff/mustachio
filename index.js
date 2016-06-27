@@ -2,6 +2,7 @@
 
 const GeneratorStream = require('./lib/generator-stream');
 const parser = require('./lib/parser');
+const partials = require('./lib/partials');
 const Context = require('./lib/context');
 
 
@@ -13,7 +14,7 @@ function Template(templateAST) {
 	this.template = templateAST;
 }
 Template.prototype.render = function (data, partials) {
-	const r = this.template.render(new Context(data, null, partials));
+	const r = this.template.render(new Context(data, partials));
 	const reader = new GeneratorStream(r);
 
 	return {
@@ -35,5 +36,6 @@ function string(templateString) {
 
 module.exports = {
 	render,
-	string
+	string,
+	partials,
 };
