@@ -38,4 +38,5 @@ module.exports = {
 	render,
 	string,
 	partials,
+	Template,
 };
