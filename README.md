@@ -1,4 +1,6 @@
-Mustachio is an experimental pull-based implementation of [the Mustache templating language][mustache]. It is fully compliant with [version 1.1][v1.1.3] of [the Mustache spec][spec].
+Mustachio is an experimental pull-based implementation of[the Mustache
+templating language][mustache]. It is fully compliant with [version
+1.1][v1.1.3] of [the Mustache spec][spec].
 
 [mustache]: https://mustache.github.io/mustache.5.html
 [v1.1.3]: https://github.com/mustache/spec/tree/v1.1.3
@@ -60,5 +62,5 @@ qualities of the streaming model:
    asynchronously becomes available
 
 [examples]: https://github.com/maghoff/mustachio/tree/master/examples
-[large-response]: https://github.com/maghoff/mustachio/blob/master/examples/large-response
-[file-browser]: https://github.com/maghoff/mustachio/blob/master/examples/file-browser
+[large-response]: https://github.com/maghoff/mustachio/tree/master/examples/large-response
+[file-browser]: https://github.com/maghoff/mustachio/tree/master/examples/file-browser
