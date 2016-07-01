@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mustachio file server</title>
+<style>
+a {
+	text-decoration: none;
+}
+th {
+	text-align: left;
+}
+.size {
+	text-align: right;
+	min-width: 100px;
+}
+.broken {
+	color: #ED4337;
+}
+ul.path {
+	display: inline;
+	padding: 0;
+}
+.path li {
+	display: inline;
+}
+.path li:after {
+	content: " / ";
+}
+.current {
+	font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<ul class="path">{{#dirname}}<li><a href="{{link}}" class="{{#current}}current{{/current}}">{{name}}</a></li>{{/dirname}}</ul>
+
+<table>
+<thead><tr>
+<th class="size">Size</th>
+<th>Name</th>
+</tr></thead>
+<tbody>
+
+{{#files}}
+<tr>
+<td class="size">{{#stat.isFile}}{{size}}{{/stat.isFile}}</td>
+<td>
+	<a class="{{#stat.err}}broken{{/stat.err}}" href="./{{name}}{{#stat.isDirectory}}/{{/stat.isDirectory}}">{{name}}{{#stat.isDirectory}}/{{/stat.isDirectory}}</a>
+	{{#lstat.isSymbolicLink}}
+		{{^target.err}}
+			&rarr; <span class="{{#stat.err}}broken{{/stat.err}}">{{target}}</span>
+		{{/target.err}}
+	{{/lstat.isSymbolicLink}}
+	</td>
+</tr>
+{{/files}}
+
+</tbody>
+</table>
+
+</body>
+</html>

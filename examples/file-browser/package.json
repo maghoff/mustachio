@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "start": "node --harmony_destructuring file-browser.js"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "dependencies": {
+    "fs-promise": "^0.5.0",
+    "map-iterator": "^1.1.0"
+  }
+}

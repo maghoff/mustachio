@@ -29,7 +29,7 @@ The last point can be tested by using curl on the command line:
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
-const mustachio = require('../');
+const mustachio = require('../../');
 
 const mu = new mustachio.resolver();
 
