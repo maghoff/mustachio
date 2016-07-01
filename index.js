@@ -30,6 +30,38 @@ Template.prototype.render = function (data, partials) {
 	};
 };
 
+function resolver(opts) {
+	opts = opts || {};
+
+	const partialsResolver = opts.partialsResolver || new partials.FsWatch(opts.root, opts.suffixes);
+
+	return (templateName, data) => {
+		const context = new Context(data || {}, partialsResolver);
+
+		const template = partialsResolver.get(templateName);
+
+		const iterator =
+			(template instanceof Promise)
+				? (function* () {
+					const ast = yield Promise.resolve(template);
+					yield* ast.render(context);
+				})()
+				: template.render(context);
+
+		const stream = new GeneratorStream(iterator);
+
+		return {
+			string: () => new Promise((resolve, reject) => {
+				const buf = [];
+				reader.on('data', chunk => buf.push(chunk));
+				reader.on('error', reject);
+				reader.on('end', () => resolve(buf.join('')));
+			}),
+			stream: () => stream
+		};
+	};
+}
+
 function string(templateString) {
 	return new Template(parser(templateString));
 }
@@ -39,4 +71,5 @@ module.exports = {
 	string,
 	partials,
 	Template,
+	resolver,
 };
