@@ -31,7 +31,7 @@ const http = require('http');
 const url = require('url');
 const mustachio = require('../');
 
-const mu = new mustachio.resolver({root: __dirname});
+const mu = new mustachio.resolver();
 
 const server = http.createServer((req, res) => {
 	// Measure time for complete requests
@@ -55,7 +55,7 @@ const server = http.createServer((req, res) => {
 	// Stream render response
 	res.writeHead(200, { "Content-Type": "text/html;charset=utf-8" });
 
-	const stream = mu("template", data).stream();
+	const stream = mu("large-response", data).stream();
 	stream.pipe(res);
 	stream.on('error', err => {
 		console.error(err.stack);
