@@ -13,7 +13,7 @@ Getting started
 
     const mustachio = require('mustachio');
 
-    const mu = new mustachio.resolver();
+    const mu = mustachio.resolver();
 
     mu("demo", { name: "World" }).stream().pipe(process.stdout);
 
