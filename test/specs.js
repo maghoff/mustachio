@@ -11,7 +11,7 @@ function runSpec(name, spec) {
 			it(test.name, done => {
 				mustachio
 					.string(test.template)
-					.render(test.data, new mustachio.partials.InMemoryPartials(test.partials))
+					.render(test.data, new mustachio.partials.InMemory(test.partials))
 					.string()
 					.then(actual => {
 						assert.equal(test.expected, actual, test.desc);
