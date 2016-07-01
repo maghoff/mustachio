@@ -1,4 +1,4 @@
-Mustachio is an experimental pull-based implementation of[the Mustache
+Mustachio is an experimental pull-based implementation of [the Mustache
 templating language][mustache]. It is fully compliant with [version
 1.1][v1.1.3] of [the Mustache spec][spec].
 
@@ -47,12 +47,12 @@ rendering or output can happen before all the data has been collected. This is
 often good enough! However, a streaming model offers greater flexibility, as
 we will see.
 
-In Mustachio these three steps happen simultaneously, in a streaming fashion.
+In Mustachio these three steps happen interleaved, in a streaming fashion.
 This means rendering can proceed as soon as the relevant data becomes
-available. In many cases, then, Mustachio will be able to respond immediately.
-It also means flow control works, so rendering and gathering of input data is
-suspended if the client can not keep up. This frees up resources for handling
-other requests.
+available. Consequently, Mustachio will be able to respond immediately to many
+requests. It also means flow control works, so rendering and gathering of
+input data is suspended if the client can not keep up. This frees up resources
+for handling other requests.
 
 The [examples][examples] directory contains examples that highlight different
 qualities of the streaming model:
