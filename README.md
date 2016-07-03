@@ -131,21 +131,17 @@ enable partials resolving for such templates, pass a partials resolver to the
 
 The `data` object
 -----------------
+These are the values you can put in the `data` object:
 
 ### Numbers and strings ###
-You can pass numbers and strings into the render functions:
-
     {
       "number": 5.25,
       "desc": "is a number."
     }
 
-This would make the template `{{number}} {{desc}}` render to `5.25 is a
-number.`.
+`{{number}} {{desc}}` ⇒ `5.25 is a number.`
 
 ### Objects ###
-You can nest objects:
-
     {
       "a": {
         "b": 5,
@@ -158,19 +154,19 @@ You can nest objects:
 `{{#a}}{{b}}, {{c.d}}{{/a}}` ⇒ `5, 6`
 
 ### Arrays ###
-You can have arrays: `{ "a": [1, 2, 3] }`, `{{#a}}({{.}}){{/a}}` ⇒ `(1)(2)(3)`.
+    { "a": [1, 2, 3] }
+
+`{{#a}}({{.}}){{/a}}` ⇒ `(1)(2)(3)`.
 
 Those are the basic types. To make use of streaming data gathering, Mustachio
 also offers some abstractions:
 
 ### Functions ###
-You can pass functions:
-
     {
       "a": () => 5
     }
 
-`{{a}}` ⇒ `5`.
+`{{a}}` ⇒ `5`
 
 Functions get called with the containing object as the `this` argument:
 
@@ -179,12 +175,12 @@ Functions get called with the containing object as the `this` argument:
       "b": function () { return this.a * 2; }
     }
 
-`{{b}}` ⇒ `10`.
+`{{b}}` ⇒ `10`
 
 Functions can also return objects and arrays which will be treated as above.
 
 ### Generator functions ###
-You can pass generator functions, which will be treated as arrays:
+Generator functions will be treated as arrays:
 
     {
       "a": function* () {
@@ -197,8 +193,6 @@ You can pass generator functions, which will be treated as arrays:
 `{{#a}}({{.}}){{/a}}` ⇒ `(0)(1)(2)`
 
 ### Promises ###
-You can pass promises:
-
     {
       "a": new Promise((resolve, reject) => {
         // Any asynchronous operation
@@ -209,7 +203,7 @@ You can pass promises:
       })
     }
 
-`{{a.isDirectory}}` ⇒ `true`
+`{{#a.isDirectory}}A directory!{{/a.isDirectory}}` ⇒ `A directory!`
 
 ### Mix ###
 The power of Mustachio comes from combining these building blocks. It works
