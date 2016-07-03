@@ -1,7 +1,7 @@
 {
   "name": "mustachio",
   "version": "0.0.0-experimental9",
-  "description": "A pull-based Mustache engine",
+  "description": "A streaming pull-based Mustache engine",
   "author": "Magnus Hoff <maghoff@gmail.com> (http://magnushoff.com/)",
   "homepage": "https://github.com/maghoff/mustachio",
   "repository": {
