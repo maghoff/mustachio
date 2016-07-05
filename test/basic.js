@@ -15,4 +15,7 @@ describe('render', function() {
 	});
 
 	it('should interpolate 0 as number', testRender("ape{{zero}}katt", { zero: 0 }, "ape0katt"));
+
+	it('should treat string as boolean true in section', testRender("{{#string}}yes{{/string}}", { string: "true" }, "yes"));
+	it('should treat string as boolean true in negative section', testRender("{{^string}}no{{/string}}", { string: "true" }, ""));
 });
