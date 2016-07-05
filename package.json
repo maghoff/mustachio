@@ -1,7 +1,7 @@
 {
   "name": "mustachio",
   "version": "0.3.2",
-  "description": "A streaming pull-based Mustache engine",
+  "description": "A pull streaming Mustache engine",
   "author": "Magnus Hoff <maghoff@gmail.com> (http://magnushoff.com/)",
   "homepage": "https://github.com/maghoff/mustachio",
   "repository": {
@@ -12,6 +12,7 @@
     "url": "https://github.com/maghoff/mustachio/issues"
   },
   "tonicExample": "const mu = require('mustachio');\n\nconst template = mu.string('Hello, {{name}}\\n');\n\ntemplate.render({ name: 'World' }).stream().pipe(process.stdout);\n",
+  "keywords": [ "mustache", "templates", "template", "streaming" ],
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^2.5.3"

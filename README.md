@@ -1,4 +1,4 @@
-Mustachio is a streaming pull-based implementation of [the Mustache templating
+Mustachio is a pull streaming implementation of [the Mustache templating
 language][mustache]. It is fully compliant with [version 1.1][v1.1.3] of [the
 Mustache spec][spec].
 
