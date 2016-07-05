@@ -43,4 +43,29 @@ describe('function', function() {
 	it('should propagate error', expectError(
 		"{{data}}",
 		{ data: () => { throw new Error("Error"); } }));
+
+	describe('with (old) prototypal inheritance', () => {
+		function Base() {}
+		Base.prototype.f = () => "apekatt";
+		function Derived() { Base.call(this); }
+		require('util').inherits(Derived, Base);
+
+		it('should find inherited methods', testRender(
+			"{{data.f}}-{{#data}}{{f}}{{/data}}",
+			{ data: new Derived() },
+			"apekatt-apekatt"));
+	});
+
+	describe('with (new) classical inheritance', () => {
+		class Base {
+			f() { return "apekatt"; }
+		}
+		class Derived extends Base {
+		}
+
+		it('should find inherited methods', testRender(
+			"{{data.f}}-{{#data}}{{f}}{{/data}}",
+			{ data: new Derived() },
+			"apekatt-apekatt"));
+	});
 });
