@@ -29,5 +29,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=4.0.0"
+  },
+  "dependencies": {
+    "readable-stream": "^2.1.4"
   }
 }
