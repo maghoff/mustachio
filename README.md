@@ -214,7 +214,7 @@ Generator functions will be treated as arrays:
       }
     }
 
-`{{ls}}` ⇒
+`Files in /usr:\n{{ls}}\nThat's all, folks!\n` ⇒
 
     Files in /usr:
     bin
