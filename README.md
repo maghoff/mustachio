@@ -205,6 +205,36 @@ Generator functions will be treated as arrays:
 
 `{{#a.isDirectory}}A directory!{{/a.isDirectory}}` ⇒ `A directory!`
 
+### Streams ###
+    {
+      "ls": () => {
+        const ls = require('child_process').spawn('ls', [ '/usr' ]);
+        ls.stdout.setEncoding('utf8');
+        return ls.stdout;
+      }
+    }
+
+`{{ls}}` ⇒
+
+    Files in /usr:
+    bin
+    etc
+    games
+    include
+    lib
+    lib32
+    libexec
+    local
+    sbin
+    share
+    src
+    var
+
+    That's all, folks!
+
+Note that streams must have an encoding set. If the streams emit binary data
+rather than text strings, the template rendering will fail.
+
 ### Mix ###
 The power of Mustachio comes from combining these building blocks. It works
 perfectly well to specify a function that returns a promise which resolves to
