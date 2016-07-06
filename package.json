@@ -1,6 +1,6 @@
 {
   "name": "mustachio",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "A pull streaming Mustache engine",
   "author": "Magnus Hoff <maghoff@gmail.com> (http://magnushoff.com/)",
   "homepage": "https://github.com/maghoff/mustachio",
