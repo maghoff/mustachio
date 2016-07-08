@@ -168,9 +168,6 @@ is a number. Yes! true`
 
 `{{#a}}({{.}}){{/a}}` ⇒ `(1)(2)(3)`.
 
-Those are the basic types. To make use of streaming data gathering, Mustachio
-also offers some abstractions:
-
 ### Functions ###
     {
       "a": () => 5
@@ -187,20 +184,18 @@ Functions get called with the containing object as the `this` argument:
 
 `{{b}}` ⇒ `10`
 
-Functions can also return objects and arrays which will be treated as above.
-
 ### Generator functions ###
 Generator functions will be treated as arrays:
 
     {
       "a": function* () {
-        for (let i = 0; i < 3; ++i) {
-          yield i;
-        }
+        yield 0;
+        yield "is smaller than";
+        yield 1;
       }
     }
 
-`{{#a}}({{.}}){{/a}}` ⇒ `(0)(1)(2)`
+`{{#a}}({{.}}){{/a}}` ⇒ `(0)(is smaller than)(1)`
 
 ### Promises ###
     {
