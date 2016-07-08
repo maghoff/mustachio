@@ -5,23 +5,30 @@ const chai = require('chai');
 const stream = require('stream');
 const readableStream = require('readable-stream');
 const util = require('./util');
-const testRender = util.testRender;
+const testRender = util.testRender, expectError = util.expectError;
 
-function streamReadable(str) {
-	return new stream.Readable({
+function streamOpts(str) {
+	return {
 		read(size) {
 			this.push(str);
 			this.push(null);
 		},
 		encoding: 'utf-8'
-	});
+	};
+}
+
+function streamReadable(str) {
+	return new stream.Readable(streamOpts(str));
 }
 
 function readableStreamReadable(str) {
-	return new readableStream.Readable({
+	return new readableStream.Readable(streamOpts(str));
+}
+
+function errorStream() {
+	return new stream.Readable({
 		read(size) {
-			this.push(str);
-			this.push(null);
+			process.nextTick(() => this.emit('error', new Error('Expected error')));
 		},
 		encoding: 'utf-8'
 	});
@@ -36,4 +43,9 @@ describe('streams', function() {
 
 	it('should escape stream', testRender(
 		"ape{{stream}}katt", { stream: streamReadable("<monkey>") }, "ape&lt;monkey&gt;katt"));
+
+	it('should propagate errors', testRender(
+		"ape{{{stream}}}katt", { stream: streamReadable("<monkey>") }, "ape<monkey>katt"));
+
+	it('should propagate error', expectError("{{stream}}", { stream: errorStream() }));
 });
