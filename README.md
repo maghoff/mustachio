@@ -131,15 +131,25 @@ enable partials resolving for such templates, pass a partials resolver to the
 
 The `data` object
 -----------------
-These are the values you can put in the `data` object:
+These are the values you can put in the `data` object: [Fundamental
+types](#fundamental-types), [objects](#objects), [arrays](#arrays),
+[functions](#functions), [generator functions](#generator-functions),
+[promises](#promises) and [streams](#streams).
 
-### Numbers and strings ###
+The power of Mustachio comes from combining these building blocks. It works
+perfectly well to specify a function that returns a promise which resolves to
+a generator that yields functions which ... etc, etc. See the
+[file-browser][file-browser] example for an effective use of this.
+
+### Fundamental types ###
     {
       "number": 5.25,
-      "desc": "is a number."
+      "desc": "is a number.",
+      "true-bool": true
     }
 
-`{{number}} {{desc}}` ⇒ `5.25 is a number.`
+`{{number}} {{desc}} {{#true-bool}}Yes!{{/true-bool}} {{true-bool}}` ⇒ `5.25
+is a number. Yes! true`
 
 ### Objects ###
     {
@@ -206,6 +216,8 @@ Generator functions will be treated as arrays:
 `{{#a.isDirectory}}A directory!{{/a.isDirectory}}` ⇒ `A directory!`
 
 ### Streams ###
+Given
+
     {
       "ls": () => {
         const ls = require('child_process').spawn('ls', [ '/usr' ]);
@@ -214,7 +226,13 @@ Generator functions will be treated as arrays:
       }
     }
 
-`Files in /usr:\n{{ls}}\nThat's all, folks!\n` ⇒
+the template
+
+    Files in /usr:
+    {{ls}}
+    That's all, folks!
+
+could render to
 
     Files in /usr:
     bin
@@ -234,10 +252,3 @@ Generator functions will be treated as arrays:
 
 Note that streams must have an encoding set. If the streams emit binary data
 rather than text strings, the template rendering will fail.
-
-### Mix ###
-The power of Mustachio comes from combining these building blocks. It works
-perfectly well to specify a function that returns a promise which resolves to
-a generator that yields functions which ... etc, etc.
-
-See the [file-browser][file-browser] example for an effective use of this.
