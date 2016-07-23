@@ -44,7 +44,7 @@ describe('streams', function() {
 	it('should escape stream', testRender(
 		"ape{{stream}}katt", { stream: streamReadable("<monkey>") }, "ape&lt;monkey&gt;katt"));
 
-	it('should propagate errors', testRender(
+	it('should allow unescaped stream', testRender(
 		"ape{{{stream}}}katt", { stream: streamReadable("<monkey>") }, "ape<monkey>katt"));
 
 	it('should propagate error', expectError("{{stream}}", { stream: errorStream() }));
