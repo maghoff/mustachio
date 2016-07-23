@@ -34,18 +34,36 @@ function errorStream() {
 	});
 }
 
-describe('streams', function() {
-	it('should handle stream.Readable as stream', testRender(
-		"ape{{{stream}}}katt", { stream: streamReadable("<monkey>") }, "ape<monkey>katt"));
+function objectStream(objects) {
+	return new stream.Readable({
+		objectMode: true,
+		read(sz) {
+			this.push(objects.length ? objects.shift() : null);
+		}
+	});
+}
 
-	it('should handle readableStream.Readable as stream', testRender(
-		"ape{{{stream}}}katt", { stream: readableStreamReadable("<monkey>") }, "ape<monkey>katt"));
+describe('streams', function () {
+	describe('interpolation', function () {
+		it('should handle stream.Readable as stream', testRender(
+			"ape{{{stream}}}katt", { stream: streamReadable("<monkey>") }, "ape<monkey>katt"));
 
-	it('should escape stream', testRender(
-		"ape{{stream}}katt", { stream: streamReadable("<monkey>") }, "ape&lt;monkey&gt;katt"));
+		it('should handle readableStream.Readable as stream', testRender(
+			"ape{{{stream}}}katt", { stream: readableStreamReadable("<monkey>") }, "ape<monkey>katt"));
 
-	it('should allow unescaped stream', testRender(
-		"ape{{{stream}}}katt", { stream: streamReadable("<monkey>") }, "ape<monkey>katt"));
+		it('should escape stream', testRender(
+			"ape{{stream}}katt", { stream: streamReadable("<monkey>") }, "ape&lt;monkey&gt;katt"));
 
-	it('should propagate error', expectError("{{stream}}", { stream: errorStream() }));
+		it('should propagate error', expectError("{{stream}}", { stream: errorStream() }));
+	});
+
+	describe('iteration', function () {
+		it('should iterate over stream in object mode', testRender(
+			"[{{#stream}}{{key}}: {{value}}\n{{/stream}}]",
+			{ stream: objectStream([{key: 'a', value: 1}, {key: 'b', value: 2}]) },
+			"[a: 1\nb: 2\n]"));
+
+		it('should ignore non-object mode stream', testRender(
+			"[{{#stream}}{{key}}: {{value}}\n{{/stream}}]", { stream: streamReadable("<monkey>") }, "[]"));
+	});
 });
