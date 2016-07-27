@@ -211,39 +211,29 @@ Generator functions will be treated as arrays:
 `{{#a.isDirectory}}A directory!{{/a.isDirectory}}` ⇒ `A directory!`
 
 ### Streams ###
-Given
+A text stream can be interpolated, like a string:
 
     {
-      "ls": () => {
-        const ls = require('child_process').spawn('ls', [ '/usr' ]);
-        ls.stdout.setEncoding('utf8');
-        return ls.stdout;
+      "cmdline": require('fs').createReadStream('/proc/self/cmdline', 'utf8')
+    }
+
+`You ran: {{cmdline}}` ⇒ `You ran: node`
+
+Note that streams must have an encoding set, so they output text rather than
+binary data.
+
+An object mode stream can be iterated over, like an array:
+
+    {
+      "objects": () => {
+        const objects = [ 1, 2, 3 ];
+        return new (require('stream')).Readable({
+          objectMode: true,
+          read() {
+            this.push(objects.length ? objects.shift() : null);
+          }
+        });
       }
     }
 
-the template
-
-    Files in /usr:
-    {{ls}}
-    That's all, folks!
-
-could render to
-
-    Files in /usr:
-    bin
-    etc
-    games
-    include
-    lib
-    lib32
-    libexec
-    local
-    sbin
-    share
-    src
-    var
-
-    That's all, folks!
-
-Note that streams must have an encoding set. If the streams emit binary data
-rather than text strings, the template rendering will fail.
+`{{#objects}}({{.}}){{/objects}}` ⇒ `(1)(2)(3)`
