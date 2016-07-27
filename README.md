@@ -222,7 +222,7 @@ A text stream can be interpolated, like a string:
 Note that streams must have an encoding set, so they output text rather than
 binary data.
 
-An object mode stream can be iterated over, like an array:
+An [object mode stream][objmode] can be iterated over, like an array:
 
     {
       "objects": () => {
@@ -237,3 +237,5 @@ An object mode stream can be iterated over, like an array:
     }
 
 `{{#objects}}({{.}}){{/objects}}` ⇒ `(1)(2)(3)`
+
+[objmode]: https://nodejs.org/api/stream.html#stream_object_mode
