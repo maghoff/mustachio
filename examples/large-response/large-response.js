@@ -56,6 +56,10 @@ const server = http.createServer((req, res) => {
 	res.writeHead(200, { "Content-Type": "text/html;charset=utf-8" });
 
 	const stream = mu("large-response", data).stream();
+
+	// Reduce in-memory buffering to make flow control more readily apparent:
+	stream._readableState.highWaterMark = 128;
+
 	stream.pipe(res);
 	stream.on('error', err => {
 		console.error(err.stack);
