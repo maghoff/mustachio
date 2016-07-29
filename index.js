@@ -6,15 +6,29 @@ const partials = require('./lib/partials');
 const Context = require('./lib/context');
 
 
+const isStream = require('is-stream');
+const escape = require('./lib/html').escape;
+const resolve = require('./lib/resolve');
+const ast = require('./lib/ast');
+
+function compileTemplate(templateAST) {
+	const code = ["(function(isStream, escape, resolve, stringify, consumeStream, renderSection){return function*(context){"];
+	code.push(templateAST.generateCode());
+	code.push("}})");
+// 	console.log(code.join(''));
+	return eval(code.join(''))(isStream, escape, resolve, ast.stringify, ast.consumeStream, ast.renderSection);
+}
+
+
 function render(template, data, partials) {
 	return string(template).render(data, partials).string();
 }
 
 function Template(templateAST) {
-	this.template = templateAST;
+	this.template = compileTemplate(templateAST);
 }
 Template.prototype.render = function (data, partials) {
-	const r = this.template.render(new Context(data, partials));
+	const r = this.template(new Context(data, partials));
 	const reader = new GeneratorStream(r);
 
 	return {
@@ -43,10 +57,10 @@ function resolver(opts) {
 		const iterator =
 			(template instanceof Promise)
 				? (function* () {
-					const ast = yield Promise.resolve(template);
-					yield* ast.render(context);
+					const t2 = yield Promise.resolve(template);
+					yield* t2(context);
 				})()
-				: template.render(context);
+				: template(context);
 
 		const stream = new GeneratorStream(iterator);
 
