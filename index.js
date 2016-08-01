@@ -12,10 +12,19 @@ const resolve = require('./lib/resolve');
 const ast = require('./lib/ast');
 
 function compileTemplate(templateAST) {
-	const code = ["(function(isStream, escape, resolve, stringify, consumeStream, renderSection){return function*(context){"];
-	code.push(templateAST.generateCode());
-	code.push("}})");
-// 	console.log(code.join(''));
+	const code = ["(function(isStream, escape, resolve, stringify, consumeStream, renderSection){"];
+
+	let nextFunctionId = 0;
+	function defun(nested) {
+		const functionName = `f${nextFunctionId++}`;
+		code.push(`function* ${functionName} (context) { ${nested} }\n`);
+		return functionName;
+	}
+
+	const root = defun(templateAST.generateCode(defun));
+	code.push(`return ${root};`);
+
+	code.push("})");
 	return eval(code.join(''))(isStream, escape, resolve, ast.stringify, ast.consumeStream, ast.renderSection);
 }
 
@@ -86,4 +95,5 @@ module.exports = {
 	partials,
 	Template,
 	resolver,
+	compileTemplate,
 };
