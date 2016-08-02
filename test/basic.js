@@ -14,7 +14,9 @@ describe('render', function() {
 		chai.expect(() => mustachio.string("ape{{katt")).to.throw();
 	});
 
-	it('should interpolate 0 as number', testRender("ape{{zero}}katt", { zero: 0 }, "ape0katt"));
+	it('should interpolate 0 as number', testRender("({{zero}})", { zero: 0 }, "(0)"));
+	it('should interpolate true as string', testRender("({{true}})", { true: true }, "(true)"));
+	it('should interpolate false as string', testRender("({{false}})", { false: false }, "(false)"));
 
 	it('should treat string as boolean true in section', testRender("{{#string}}yes{{/string}}", { string: "true" }, "yes"));
 	it('should treat string as boolean true in negative section', testRender("{{^string}}no{{/string}}", { string: "true" }, ""));
