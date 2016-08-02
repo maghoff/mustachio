@@ -4,45 +4,13 @@ const GeneratorStream = require('./lib/generator-stream');
 const parser = require('./lib/parser');
 const partials = require('./lib/partials');
 const Context = require('./lib/context');
+const compiler = require('./lib/compiler');
 
-
-const isStream = require('is-stream');
-const escape = require('./lib/html').escape;
-const resolve = require('./lib/resolve');
-const runtime = require('./lib/runtime');
-
-function compileTemplate(templateAST) {
-	const code = ["(function(isStream, escape, resolve, stringify, consumeStream, renderSection){"];
-
-	let nextFunctionId = 0;
-	function defun(nested) {
-		const functionName = `f${nextFunctionId++}`;
-		code.push(`function* ${functionName} (context) { ${nested} }\n`);
-		return functionName;
-	}
-
-	let nextConstId = 0;
-	function define(value) {
-		const constName = `c${nextConstId++}`;
-		code.push(`const ${constName} = ${JSON.stringify(value)};\n`);
-		return constName;
-	}
-
-	const root = defun(templateAST.generateCode(defun, define));
-	code.push(`return ${root};`);
-
-	code.push("})");
-	return eval(code.join(''))(isStream, escape, resolve, runtime.stringify, runtime.consumeStream, runtime.renderSection);
-}
-
-
-function render(template, data, partials) {
-	return string(template).render(data, partials).string();
-}
 
 function Template(templateAST) {
-	this.template = compileTemplate(templateAST);
+	this.template = compiler(templateAST);
 }
+
 Template.prototype.render = function (data, partials) {
 	const r = this.template(new Context(data, partials, ""));
 	const reader = new GeneratorStream(r);
@@ -59,6 +27,7 @@ Template.prototype.render = function (data, partials) {
 		stream: () => reader
 	};
 };
+
 
 function resolver(opts) {
 	opts = opts || {};
@@ -96,11 +65,14 @@ function string(templateString) {
 	return new Template(parser(templateString));
 }
 
+function render(template, data, partials) {
+	return string(template).render(data, partials).string();
+}
+
 module.exports = {
 	render,
 	string,
 	partials,
 	Template,
 	resolver,
-	compileTemplate,
 };
