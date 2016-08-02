@@ -9,7 +9,7 @@ const Context = require('./lib/context');
 const isStream = require('is-stream');
 const escape = require('./lib/html').escape;
 const resolve = require('./lib/resolve');
-const ast = require('./lib/ast');
+const runtime = require('./lib/runtime');
 
 function compileTemplate(templateAST) {
 	const code = ["(function(isStream, escape, resolve, stringify, consumeStream, renderSection){"];
@@ -25,7 +25,7 @@ function compileTemplate(templateAST) {
 	code.push(`return ${root};`);
 
 	code.push("})");
-	return eval(code.join(''))(isStream, escape, resolve, ast.stringify, ast.consumeStream, ast.renderSection);
+	return eval(code.join(''))(isStream, escape, resolve, runtime.stringify, runtime.consumeStream, runtime.renderSection);
 }
 
 
