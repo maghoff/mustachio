@@ -21,7 +21,14 @@ function compileTemplate(templateAST) {
 		return functionName;
 	}
 
-	const root = defun(templateAST.generateCode(defun));
+	let nextConstId = 0;
+	function define(value) {
+		const constName = `c${nextConstId++}`;
+		code.push(`const ${constName} = ${JSON.stringify(value)};\n`);
+		return constName;
+	}
+
+	const root = defun(templateAST.generateCode(defun, define));
 	code.push(`return ${root};`);
 
 	code.push("})");
