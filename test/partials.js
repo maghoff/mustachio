@@ -32,3 +32,25 @@ describe('FsWatch', function() {
 
 	it('should resolve partials file', testRender("{{>apekatt}}", {}, "apekatt\n"));
 });
+
+describe('InMemory', function() {
+	function testRender(template, data, partials, expected) {
+		return done => {
+			const resolver = new mustachio.partials.InMemory(partials);
+			mustachio.string(template).render(data, resolver).string().then(actual => {
+				assert.equal(expected, actual);
+				done();
+			}).catch(done);
+		};
+	}
+
+	it('should resolve partials', testRender("{{>apekatt}}", {}, { apekatt: "apekatt\n" }, "apekatt\n"));
+
+	it('should render margin on every line', testRender("  {{>a}}", {}, { a: "a\nb\nc\n" }, "  a\n  b\n  c\n"));
+	it('should render margin within nested sections', testRender(
+		"  {{>a}}",
+		{ x: [ 1, 2, 3 ] },
+		{ a: "{{#x}}\n- {{.}}\n{{/x}}" },
+		"  - 1\n  - 2\n  - 3\n"
+	));
+});

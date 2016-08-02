@@ -37,7 +37,7 @@ function Template(templateAST) {
 	this.template = compileTemplate(templateAST);
 }
 Template.prototype.render = function (data, partials) {
-	const r = this.template(new Context(data, partials));
+	const r = this.template(new Context(data, partials, ""));
 	const reader = new GeneratorStream(r);
 
 	return {
@@ -59,7 +59,7 @@ function resolver(opts) {
 	const partialsResolver = opts.partialsResolver || new partials.FsWatch(opts.root, opts.suffixes);
 
 	return (templateName, data) => {
-		const context = new Context(data || {}, partialsResolver);
+		const context = new Context(data || {}, partialsResolver, "");
 
 		const template = partialsResolver.get(templateName);
 
