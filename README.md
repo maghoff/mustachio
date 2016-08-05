@@ -44,15 +44,17 @@ three discrete steps:
 
 In this model, no output can happen before the rendering is finished, and no
 rendering or output can happen before all the data has been collected. This is
-often good enough! However, a streaming model offers greater flexibility and
-can give better performance.
+often good enough! However, a streaming model offers greater flexibility, can
+give better performance and it can be a better fit in an otherwise asynchronous
+environment such as node.js.
 
 In Mustachio these three steps happen interleaved, in a streaming fashion.
 This means rendering can proceed as soon as the relevant data becomes
 available. Consequently, Mustachio will be able to respond immediately to many
-requests. It also means flow control works, so rendering and gathering of
-input data can be suspended when the client can not keep up. This frees up
-resources for handling other requests.
+requests instead of waiting until the last bit of data trickles in. It also
+means flow control works, so rendering and gathering of input data can be
+suspended when the client can not keep up. This frees up resources for handling
+other requests.
 
 The [examples][examples] directory contains examples that highlight different
 qualities of the streaming model:
@@ -60,14 +62,16 @@ qualities of the streaming model:
  * [large-response][large-response] demonstrates flow control
  * [file-browser][file-browser] demonstrates rendering with data that
    asynchronously becomes available
+ * [postgres-query-stream][postgres-query-stream] demonstrates rendering with
+   data from a PostgreSQL database, stream reading from the database
 
 [examples]: https://github.com/maghoff/mustachio/tree/master/examples
 [large-response]: https://github.com/maghoff/mustachio/tree/master/examples/large-response
 [file-browser]: https://github.com/maghoff/mustachio/tree/master/examples/file-browser
+[postgres-query-stream]: https://github.com/maghoff/mustachio/tree/master/examples/postgres-query-stream
 
 API
 ===
-
     const mustachio = require('mustachio');
 
 Using a template string
@@ -134,7 +138,8 @@ The `data` object
 These are the values you can put in the `data` object: [Fundamental
 types](#fundamental-types), [objects](#objects), [arrays](#arrays),
 [functions](#functions), [generator functions](#generator-functions),
-[promises](#promises) and [streams](#streams).
+[promises](#promises), [text streams](#text-streams) and [object mode
+streams](#object-mode-streams).
 
 The power of Mustachio comes from combining these building blocks. It works
 perfectly well to specify a function that returns a promise which resolves to
@@ -210,7 +215,9 @@ Generator functions will be treated as arrays:
 
 `{{#a.isDirectory}}A directory!{{/a.isDirectory}}` ⇒ `A directory!`
 
-### Streams ###
+The [file-browser example][file-browser] demonstrates use of promises as data.
+
+### Text streams ###
 A text stream can be interpolated, like a string:
 
     {
@@ -222,6 +229,7 @@ A text stream can be interpolated, like a string:
 Note that streams must have an encoding set, so they output text rather than
 binary data.
 
+### Object mode streams ###
 An [object mode stream][objmode] can be iterated over, like an array:
 
     {
@@ -239,3 +247,6 @@ An [object mode stream][objmode] can be iterated over, like an array:
 `{{#objects}}({{.}}){{/objects}}` ⇒ `(1)(2)(3)`
 
 [objmode]: https://nodejs.org/api/stream.html#stream_object_mode
+
+The [postgres-query-stream example][postgres-query-stream] demonstrates use of
+object mode streams.
