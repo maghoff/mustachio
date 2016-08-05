@@ -19,6 +19,8 @@ describe('FsNoCache', function() {
 	const testRender = testRenderCore.bind(null, mustachio.partials.FsNoCache);
 
 	it('should resolve partials file', testRender("{{>apekatt}}", {}, "apekatt\n"));
+
+	it('should ignore missing partials file', testRender("({{>monkeybusiness}})", {}, "()"));
 });
 
 describe('Fs', function() {
