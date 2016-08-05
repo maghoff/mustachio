@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/maghoff/mustachio/issues"
   },
-  "tonicExample": "const mu = require('mustachio');\n\nconst template = mu.string('Hello, {{name}}\\n');\n\ntemplate.render({ name: 'World' }).stream().pipe(process.stdout);\n",
+  "tonicExample": "const mu = require('mustachio');\n\nconst template = mu.string('Hello, {{name}}\\n');\n\ntemplate.render({ name: 'World' })\n  .string()\n  .then(rendered => console.log(rendered));\n",
   "keywords": [
     "mustache",
     "templates",
