@@ -1,9 +1,9 @@
 Interface
 =========
 The interface of a partials resolver is one function, `get(id)`. It takes a
-partials ID and returns a `Promise` that resolves to a parsed template.
+partials ID and returns a `Promise` that resolves to a compiled template.
 
-To parse a template, call `require('mustachio/lib/parser')(templateString)`.
+To compile a template, call `require('mustachio').compile(templateString)`.
 
 For a full example of a simple partials resolver, see [InMemory][InMemory].
 

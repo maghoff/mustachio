@@ -1,14 +1,14 @@
 'use strict';
 
 const GeneratorStream = require('./lib/generator-stream');
-const parser = require('./lib/parser');
+const compile = require('./lib/compiler').compile;
 const partials = require('./lib/partials');
 const Context = require('./lib/context');
 const compiler = require('./lib/compiler');
 
 
-function Template(templateAST) {
-	this.template = compiler(templateAST);
+function Template(template) {
+	this.template = template;
 }
 
 Template.prototype.render = function (data, partials) {
@@ -62,7 +62,7 @@ function resolver(opts) {
 }
 
 function string(templateString) {
-	return new Template(parser(templateString));
+	return new Template(compile(templateString));
 }
 
 function render(template, data, partials) {
@@ -75,4 +75,5 @@ module.exports = {
 	partials,
 	Template,
 	resolver,
+	compile,
 };
