@@ -135,7 +135,7 @@ enable partials resolving for such templates, pass a partials resolver to the
 
 The `data` object
 -----------------
-These are the values you can put in the `data` object: [Fundamental
+These are the types of values you can put in the `data` object: [Fundamental
 types](#fundamental-types), [objects](#objects), [arrays](#arrays),
 [functions](#functions), [generator functions](#generator-functions),
 [promises](#promises), [text streams](#text-streams) and [object mode
