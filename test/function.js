@@ -30,6 +30,11 @@ describe('function', function() {
 		{ array: () => ["ape", () => "katt"] },
 		"apekatt"));
 
+	it('should resolve when root is function', testRender(
+		"ape{{feline}}",
+		() => ({ feline: "katt" }),
+		"apekatt"));
+
 	it('should have `this` set correctly', testRender(
 		"{{data}}",
 		{ data: "apekatt", f: function () { return this.data; } },

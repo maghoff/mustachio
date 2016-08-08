@@ -35,4 +35,14 @@ describe('integration', function() {
 			yield () => ({ x: "katt" });
 		}},
 		"apekatt"));
+
+	it('should resolve when root is function nested in promise', testRender(
+		"ape{{feline}}",
+		Promise.resolve(() => ({ feline: "katt" })),
+		"apekatt"));
+
+	it('should resolve when root is promise nested in function', testRender(
+		"ape{{feline}}",
+		() => Promise.resolve({ feline: "katt" }),
+		"apekatt"));
 });

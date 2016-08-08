@@ -20,6 +20,11 @@ describe('promise', function() {
 		{ data: Promise.resolve(Promise.resolve(Promise.resolve("apekatt"))) },
 		"apekatt"));
 
+	it('should resolve when root is Promise', testRender(
+		"ape{{feline}}",
+		Promise.resolve({ feline: "katt" }),
+		"apekatt"));
+
 	it('should propagate errors', expectError(
 		"{{data}}",
 		{ data: Promise.reject(new Error("apekatt")) }));
