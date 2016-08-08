@@ -1,14 +1,5 @@
 #!/usr/bin/env node
 
-/*
-
-TODO Present this example
-
-TODO Explain pg connection configuration
-PGHOST=/var/run/postgresql ./postgres-query-stream.js
-
-*/
-
 'use strict';
 
 const http = require('http');
