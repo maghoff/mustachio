@@ -7,6 +7,24 @@ const Context = require('./lib/context');
 const compiler = require('./lib/compiler');
 
 
+function Rendering(stream) {
+	this._stream = stream;
+}
+
+Rendering.prototype.string = function () {
+	return new Promise((resolve, reject) => {
+		const buf = [];
+		this._stream.on('data', chunk => buf.push(chunk));
+		this._stream.on('error', reject);
+		this._stream.on('end', () => resolve(buf.join('')));
+	});
+};
+
+Rendering.prototype.stream = function () {
+	return this._stream;
+};
+
+
 function Template(template) {
 	this.template = template;
 }
@@ -15,17 +33,9 @@ Template.prototype.render = function (data, partials) {
 	const r = this.template(Context.createRoot(data, partials));
 	const reader = new GeneratorStream(r);
 
-	return {
-		string: () => {
-			return new Promise((resolve, reject) => {
-				const buf = [];
-				reader.on('data', chunk => buf.push(chunk));
-				reader.on('error', reject);
-				reader.on('end', () => resolve(buf.join('')));
-			});
-		},
-		stream: () => reader
-	};
+	data.flush = () => reader.flush();
+
+	return new Rendering(reader);
 };
 
 
@@ -49,15 +59,9 @@ function resolver(opts) {
 
 		const stream = new GeneratorStream(iterator);
 
-		return {
-			string: () => new Promise((resolve, reject) => {
-				const buf = [];
-				reader.on('data', chunk => buf.push(chunk));
-				reader.on('error', reject);
-				reader.on('end', () => resolve(buf.join('')));
-			}),
-			stream: () => stream
-		};
+		data.flush = () => stream.flush();
+
+		return new Rendering(stream);
 	};
 }
 
