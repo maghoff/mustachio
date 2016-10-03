@@ -14,11 +14,11 @@ page that has to be rendered some other way. React does not support rendering
 of the header tags.
 
 It is simple enough to put this into any template rendering system. However,
-this usually leaves some performance on the table in that it stalls the
-response until the React component has been rendered. React components are
-often big and on the scale of web requests they can take some time to render.
-If the header were sent before starting to render the React components, it
-would allow the client to request stylesheets and javascript dependencies
+this usually leaves some performance on the table as it stalls the response
+until the React component has been rendered. React components are often big
+and on the scale of web requests they can take some time to render. If the
+header were sent before starting to render the React components, it would
+allow the client to request stylesheets and javascript dependencies
 simultaneously, reducing the time until the entire page is ready on the client
 side.
 
