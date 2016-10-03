@@ -56,12 +56,8 @@ function string(templateString) {
 	return new Template(compile(templateString));
 }
 
-function render(template, data, partials) {
-	return string(template).render(data, partials).string();
-}
 
 module.exports = {
-	render,
 	string,
 	partials,
 	Template,
