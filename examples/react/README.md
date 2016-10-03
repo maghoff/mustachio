@@ -50,7 +50,7 @@ purpose value you can include in Mustachio templates to achieve this:
 	<script src="{{large_js_dependency}}"></script>
     </head>
 	<body>
-	{{flush}}
+	{{mu_flush}}
 	{{! At this point, the header has been sent to the client }}
 	{{{react_component}}}
 	</body>
