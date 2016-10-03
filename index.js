@@ -1,43 +1,8 @@
 'use strict';
 
-const GeneratorStream = require('./lib/generator-stream');
 const compile = require('./lib/compiler').compile;
 const partials = require('./lib/partials');
-const Context = require('./lib/context');
-const compiler = require('./lib/compiler');
-
-
-function Template(template) {
-	this.template = template;
-}
-
-Template.prototype.render = function (data, partials) {
-	const context = Context.createRoot(data, partials);
-
-	const iterator =
-		(this.template instanceof Promise)
-			? (function* () {
-				const t2 = yield Promise.resolve(this.template);
-				yield* t2(context);
-			}.bind(this))()
-			: this.template(context);
-
-	const stream = new GeneratorStream(iterator);
-
-	data.flush = () => stream.flush();
-
-	return {
-		string: () => {
-			return new Promise((resolve, reject) => {
-				const buf = [];
-				stream.on('data', chunk => buf.push(chunk));
-				stream.on('error', reject);
-				stream.on('end', () => resolve(buf.join('')));
-			});
-		},
-		stream: () => stream
-	};
-};
+const Template = require('./lib/template');
 
 
 function resolver(opts) {
@@ -58,9 +23,8 @@ function string(templateString) {
 
 
 module.exports = {
-	string,
 	partials,
-	Template,
-	resolver,
 	compile,
+	string,
+	resolver,
 };
