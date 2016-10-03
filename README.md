@@ -64,11 +64,14 @@ qualities of the streaming model:
    asynchronously becomes available
  * [postgres-query-stream][postgres-query-stream] demonstrates rendering with
    data from a PostgreSQL database, stream reading from the database
+ * [react][react] shows how to explicitly flush the render buffer before
+   blocking for a large or slow operation
 
 [examples]: https://github.com/maghoff/mustachio/tree/master/examples
 [large-response]: https://github.com/maghoff/mustachio/tree/master/examples/large-response
 [file-browser]: https://github.com/maghoff/mustachio/tree/master/examples/file-browser
 [postgres-query-stream]: https://github.com/maghoff/mustachio/tree/master/examples/postgres-query-stream
+[react]: https://github.com/maghoff/mustachio/tree/master/examples/react
 
 API
 ===
