@@ -8,7 +8,7 @@ const assert = chai.assert;
 
 describe('flush', function () {
 	it('should flush when told to', function (done) {
-		const template = "ape{{flush}}katt";
+		const template = "ape{{mu_flush}}katt";
 		const expectedChunks = [ "ape", "katt" ];
 
 		const stream = mustachio.string(template).render({}).stream();
@@ -23,7 +23,7 @@ describe('flush', function () {
 	});
 
 	it('should handle multiple flushes', function (done) {
-		const template = "a{{flush}}pe{{flush}}ka{{flush}}tt";
+		const template = "a{{mu_flush}}pe{{mu_flush}}ka{{mu_flush}}tt";
 		const expectedChunks = [ "a", "pe", "ka", "tt" ];
 
 		const stream = mustachio.string(template).render({}).stream();
