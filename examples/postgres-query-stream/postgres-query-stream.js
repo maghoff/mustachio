@@ -8,7 +8,7 @@ const mustachio = require('../../');
 const pg = require('pg');
 const QueryStream = require('pg-query-stream');
 
-const mu = new mustachio.resolver();
+const mu = mustachio.resolver();
 
 const server = http.createServer((req, res) => {
 	// Prepare data for template

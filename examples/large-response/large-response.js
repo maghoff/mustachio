@@ -31,7 +31,7 @@ const http = require('http');
 const url = require('url');
 const mustachio = require('../../');
 
-const mu = new mustachio.resolver();
+const mu = mustachio.resolver();
 
 const server = http.createServer((req, res) => {
 	// Measure time for complete requests
