@@ -29,7 +29,6 @@ const server = http.createServer((req, res) => {
 
 				return stream;
 			})
-			.catch(err => { throw err; })
 	};
 
 	// Stream render response
