@@ -36,4 +36,34 @@ describe('flush', function () {
 		});
 		stream.on('error', done);
 	});
+
+	it('should be able to flush when root data object is a function', function (done) {
+		const template = "ape{{mu_flush}}katt";
+		const expectedChunks = [ "ape", "katt" ];
+
+		const stream = mustachio.string(template).render(() => ({})).stream();
+		stream.on('data', chunk => {
+			assert.equal(expectedChunks.shift(), chunk);
+		});
+		stream.on('end', () => {
+			assert.equal(0, expectedChunks.length);
+			done();
+		});
+		stream.on('error', done);
+	});
+
+	it('should be able to flush when root data object is a promise', function (done) {
+		const template = "ape{{mu_flush}}katt";
+		const expectedChunks = [ "ape", "katt" ];
+
+		const stream = mustachio.string(template).render(Promise.resolve({})).stream();
+		stream.on('data', chunk => {
+			assert.equal(expectedChunks.shift(), chunk);
+		});
+		stream.on('end', () => {
+			assert.equal(0, expectedChunks.length);
+			done();
+		});
+		stream.on('error', done);
+	});
 });
