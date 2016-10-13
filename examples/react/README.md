@@ -29,29 +29,29 @@ After all, Mustachio stream renders the template, and is finished with the
 header before it reaches the React copmponent:
 
     <html>
-	<head>
-	<script src="{{large_js_dependency}}"></script>
+    <head>
+    <script src="{{large_js_dependency}}"></script>
     </head>
-	<body>
-	{{{react_component}}}
-	</body>
-	</html>
+    <body>
+    {{{react_component}}}
+    </body>
+    </html>
 
 However, real world considerations make this slightly more involved. For
 performance reasons it is imperative that Mustachio buffers its output in
 chunks, and it does not know to flush the buffer before it reaches the React
 component.
 
-The solution here is to add an explicit buffer flush. `{{flush}}` is a special
-purpose value you can include in Mustachio templates to achieve this:
+The solution here is to add an explicit buffer flush. `{{mu_flush}}` is a
+special purpose value you can include in Mustachio templates to achieve this:
 
     <html>
-	<head>
-	<script src="{{large_js_dependency}}"></script>
+    <head>
+    <script src="{{large_js_dependency}}"></script>
     </head>
-	<body>
-	{{mu_flush}}
-	{{! At this point, the header has been sent to the client }}
-	{{{react_component}}}
-	</body>
-	</html>
+    <body>
+    {{mu_flush}}
+    {{! At this point, the header has been sent to the client }}
+    {{{react_component}}}
+    </body>
+    </html>
