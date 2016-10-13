@@ -2,7 +2,7 @@
 
 {{!
 
-By including the mu_flush tag, we explicitly flush the data rendered so
+By including the _flush tag, we explicitly flush the data rendered so
 far, sending it to the client before continuing. This makes sure that
 the client receives and can act upon links to external scripts and
 stylesheets as soon as possible, improving total delivery time of the
@@ -10,7 +10,7 @@ web page.
 
 }}
 
-{{mu_flush}}
+{{_flush}}
 
 {{pause}} {{! Inflate the delay, so it is readily observable }}
 {{{react_contents}}}

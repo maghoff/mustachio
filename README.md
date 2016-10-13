@@ -139,8 +139,8 @@ enable partials resolving for such templates, pass a partials resolver to the
 Explicitly flushing the render buffer
 -------------------------------------
 As a special concern, it is possible to explicitly flush the render buffer
-during rendering by including the `{{mu_flush}}` tag. If your `data` object
-includes data named `mu_flush` it overrides the flush function.
+during rendering by including the `{{_flush}}` tag. If your `data` object
+includes data named `_flush` it overrides the flush function.
 
 See [the React example][react] for more.
 

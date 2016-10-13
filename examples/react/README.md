@@ -42,7 +42,7 @@ performance reasons it is imperative that Mustachio buffers its output in
 chunks, and it does not know to flush the buffer before it reaches the React
 component.
 
-The solution here is to add an explicit buffer flush. `{{mu_flush}}` is a
+The solution here is to add an explicit buffer flush. `{{_flush}}` is a
 special purpose value you can include in Mustachio templates to achieve this:
 
     <html>
@@ -50,7 +50,7 @@ special purpose value you can include in Mustachio templates to achieve this:
     <script src="{{large_js_dependency}}"></script>
     </head>
     <body>
-    {{mu_flush}}
+    {{_flush}}
     {{! At this point, the header has been sent to the client }}
     {{{react_component}}}
     </body>
