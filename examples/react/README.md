@@ -1,11 +1,22 @@
 This example demonstrates effective use of explicit flushing to combine
 Mustachio and [React](https://facebook.github.io/react/).
 
+There are two ways to effect a flush in Mustachio, so this directory contains
+two entry point modules each demonstrating one way.
+
 Running
 =======
+First, install dependencies:
 
     npm install
-    ./react.js
+
+For testing the `{{_flush}}` tag included in a template, run
+
+    ./react-template-flush.js
+
+For testing the `stream.flush()` API, run
+
+    ./react-code-flush.js
 
 The problem
 ===========
@@ -42,8 +53,12 @@ performance reasons it is imperative that Mustachio buffers its output in
 chunks, and it does not know to flush the buffer before it reaches the React
 component.
 
-The solution here is to add an explicit buffer flush. `{{_flush}}` is a
-special purpose value you can include in Mustachio templates to achieve this:
+The solution here is to add an explicit buffer flush. Mustachio exposes two
+different ways of achieving this:
+
+### Explicit flush in the template
+`{{_flush}}` is a special purpose value you can include in Mustachio templates
+to effect a buffer flush:
 
     <html>
     <head>
@@ -55,3 +70,24 @@ special purpose value you can include in Mustachio templates to achieve this:
     {{{react_component}}}
     </body>
     </html>
+
+Test the <react-template-flush.js> example to see this method in action.
+
+### Explicit flush in the code
+The `stream` object has a function `flush()` which returns a `Promise`. When
+the `Promise` resolves, the buffer has been flushed.
+
+    const data = {
+      react_contents: () => {
+        return stream.flush() //< Explicit flush
+          .then(() => {
+            const element = reactComponent(React);
+            return ReactDOMServer.renderToString(element);
+          })
+      }
+    };
+
+This method has the advantage that it keeps the template more free of logic
+and side effects.
+
+Test the <react-code-flush.js> example to see this method in action.

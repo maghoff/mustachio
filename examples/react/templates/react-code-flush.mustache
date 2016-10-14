@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{title}}</title>
+<script defer src="react.js"></script>
+<script defer src="react-dom.js"></script>
+<script defer src="react-component.js"></script>
+</head>
+<body>
+
+<p id="loading">Waiting for server side...</p>
+
+<div id="reactContainer">{{{react_contents}}}</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+	document.getElementById("loading").style = "text-decoration: line-through";
+
+	const container = document.getElementById("reactContainer");
+
+	setInterval(function () {
+		ReactDOM.render(reactComponent(React), container);
+	}, 1000);
+});
+</script>
+
+</body>
+</html>

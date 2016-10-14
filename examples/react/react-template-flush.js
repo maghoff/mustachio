@@ -16,15 +16,15 @@ function index(req, res) {
 	const data = {
 		title: "Mustachio React demo",
 
-		// To be able to see the flush easily from the client side, for
-		// example with curl, we add this artificial pause:
+		// To be able to see the flush easily from the
+		// client side, we add this artificial pause:
 		pause: new Promise((resolve, reject) => setTimeout(resolve, 1000)),
 
 		react_contents: function () {
 			// React elements are often big and can take a substantial amount
-			// of time to render. By including the React root element as a
-			// function, we make sure that we can render the header of the
-			// page before blocking on the React bits.
+			// of time to render. We have structured this example to make sure
+			// we can render and deliver the header with script-links before
+			// blocking for rendering the React component.
 
 			const element = reactComponent(React);
 			return ReactDOMServer.renderToString(element);
@@ -34,7 +34,7 @@ function index(req, res) {
 	// Stream render response
 	res.writeHead(200, { "Content-Type": "text/html;charset=utf-8" });
 
-	const stream = mu("react", data).stream();
+	const stream = mu("react-template-flush", data).stream();
 
 	stream.pipe(res);
 	stream.on('error', err => {
