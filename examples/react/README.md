@@ -56,7 +56,8 @@ component.
 The solution here is to add an explicit buffer flush. Mustachio exposes two
 different ways of achieving this:
 
-### Explicit flush in the template
+Explicit flush in the template
+------------------------------
 `{{_flush}}` is a special purpose value you can include in Mustachio templates
 to effect a buffer flush:
 
@@ -73,7 +74,8 @@ to effect a buffer flush:
 
 Test the <react-template-flush.js> example to see this method in action.
 
-### Explicit flush in the code
+Explicit flush in the code
+--------------------------
 The `stream` object has a function `flush()` which returns a `Promise`. When
 the `Promise` resolves, the buffer has been flushed.
 
