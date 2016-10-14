@@ -6,7 +6,7 @@ const util = require('./util');
 
 const assert = chai.assert;
 
-describe('flush', function () {
+describe('_flush', function () {
 	it('should flush when told to', function (done) {
 		const template = "ape{{_flush}}katt";
 		const expectedChunks = [ "ape", "katt" ];
@@ -57,6 +57,27 @@ describe('flush', function () {
 		const expectedChunks = [ "ape", "katt" ];
 
 		const stream = mustachio.string(template).render(Promise.resolve({})).stream();
+		stream.on('data', chunk => {
+			assert.equal(expectedChunks.shift(), chunk);
+		});
+		stream.on('end', () => {
+			assert.equal(0, expectedChunks.length);
+			done();
+		});
+		stream.on('error', done);
+	});
+});
+
+describe('stream.flush()', function () {
+	it('should flush when told to', function (done) {
+		const template = "ape{{feline}}!";
+		const expectedChunks = [ "ape", "katt!" ];
+
+		let stream;
+		const data = {
+			feline: () => stream.flush().then(() => "katt")
+		};
+		stream = mustachio.string(template).render(data).stream();
 		stream.on('data', chunk => {
 			assert.equal(expectedChunks.shift(), chunk);
 		});
