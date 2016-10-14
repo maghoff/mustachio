@@ -139,10 +139,14 @@ enable partials resolving for such templates, pass a partials resolver to the
 Explicitly flushing the render buffer
 -------------------------------------
 As a special concern, it is possible to explicitly flush the render buffer
-during rendering by including the `{{_flush}}` tag. If your `data` object
-includes data named `_flush` it overrides the flush function.
+during rendering. Mustachio offers two ways of doing this:
 
-See [the React example][react] for more.
+ * by using the `{{_flush}}` tag in the template. Note that if your `data`
+   object includes data named `_flush` it overrides the flush function
+ * call `stream.flush()` in the code. It returns a `Promise`, and when this
+   resolves, the render buffer has been flushed
+
+See [the React example][react] for more about both methods.
 
 The `data` object
 -----------------
