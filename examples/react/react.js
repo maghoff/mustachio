@@ -8,10 +8,11 @@ const url = require('url');
 const mustachio = require('../../');
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
+const reactComponent = require('./react-component');
 
 const mu = mustachio.resolver();
 
-const server = http.createServer((req, res) => {
+function index(req, res) {
 	const data = {
 		title: "Mustachio React demo",
 
@@ -25,7 +26,7 @@ const server = http.createServer((req, res) => {
 			// function, we make sure that we can render the header of the
 			// page before blocking on the React bits.
 
-			const element = React.createElement('div', null, 'Hello, World!');
+			const element = reactComponent(React);
 			return ReactDOMServer.renderToString(element);
 		}
 	};
@@ -40,6 +41,26 @@ const server = http.createServer((req, res) => {
 		console.error(err.stack);
 		res.destroy();
 	});
+}
+
+function javascript(filename, req, res) {
+	res.writeHead(200, { "Content-Type": "text/javascript" });
+	fs.createReadStream(filename).pipe(res);
+}
+
+const server = http.createServer((req, res) => {
+	if (req.url === '/') {
+		index(req, res);
+	} else if (req.url === '/react.js') {
+		javascript("node_modules/react/dist/react.js", req, res);
+	} else if (req.url === '/react-dom.js') {
+		javascript("node_modules/react-dom/dist/react-dom.js", req, res);
+	} else if (req.url === '/react-component.js') {
+		javascript("react-component.js", req, res);
+	} else {
+		res.writeHead(404, { "Content-Type": "text/plain" });
+		res.end("Not found\n");
+	}
 });
 
 server.listen(8080, "localhost", function () {
