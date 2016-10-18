@@ -24,7 +24,7 @@ const server = http.createServer((req, res) => {
 				const query = new QueryStream('SELECT * FROM generate_series(0, $1) num', [100000]);
 				const stream = x.client.query(query);
 
-				// Release the client when the stream is finished
+				// Release the db connection when the stream finishes
 				stream.on('end', x.done);
 
 				return stream;
