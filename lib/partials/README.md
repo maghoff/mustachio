@@ -3,6 +3,12 @@ Interface
 The interface of a partials resolver is one function, `get(id)`. It takes a
 partials ID and returns a `Promise` that resolves to a compiled template.
 
+Relative paths are resolved by the Mustachio runtime. When a template
+includes `{{>a/b/c}}`, `get` is called with `a/b/c` as the argument. If that
+partial then includes `../d`, `get` will be called with `a/d` as the argument.
+It is not possible to navigate further out than the root template directory,
+no matter how many `../`-s are added.
+
 To compile a template, call `require('mustachio').compile(templateString)`.
 
 For a full example of a simple partials resolver, see [InMemory][InMemory].
