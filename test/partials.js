@@ -21,6 +21,21 @@ describe('FsNoCache', function() {
 	it('should resolve partials file', testRender("{{>apekatt}}", {}, "apekatt\n"));
 
 	it('should ignore missing partials file', testRender("({{>monkeybusiness}})", {}, "()"));
+
+	it('should resolve partials with paths',
+		testRender("{{>a/b}}", {}, "katt\n"));
+
+	it('should resolve partials relative to containing partial',
+		testRender("{{>a/c}}", {}, "-katt\n-\n"));
+
+	it('should resolve absolute partial includes',
+		testRender("{{>a/d}}", {}, "apekatt\n"));
+
+	it('should resolve relative partial includes with ../',
+		testRender("{{>a/e}}", {}, "apekatt\n"));
+
+	it('should cap ..-traversing at root',
+		testRender("{{>a/f}}", {}, "apekatt\n"));
 });
 
 describe('Fs', function() {
@@ -55,4 +70,30 @@ describe('InMemory', function() {
 		{ a: "{{#x}}\n- {{.}}\n{{/x}}" },
 		"  - 1\n  - 2\n  - 3\n"
 	));
+
+	const partials = {
+		a: {
+			b: "katt\n",
+			c: "-{{>b}}-\n",
+			d: "{{>/apekatt}}\n",
+			e: "{{>../apekatt}}\n",
+			f: "{{>../../apekatt}}\n",
+		},
+		apekatt: "apekatt\n"
+	};
+
+	it('should resolve partials with paths',
+		testRender("{{>a/b}}", {}, partials, "katt\n"));
+
+	it('should resolve partials relative to containing partial',
+		testRender("{{>a/c}}", {}, partials, "-katt\n-\n"));
+
+	it('should resolve absolute partial includes',
+		testRender("{{>a/d}}", {}, partials, "apekatt\n"));
+
+	it('should resolve relative partial includes with ../',
+		testRender("{{>a/e}}", {}, partials, "apekatt\n"));
+
+	it('should cap ..-traversing at root',
+		testRender("{{>a/f}}", {}, partials, "apekatt\n"));
 });
