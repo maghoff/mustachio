@@ -13,7 +13,7 @@ To compile a template, call `require('mustachio').compile(templateString)`.
 
 For a full example of a simple partials resolver, see [InMemory][InMemory].
 
-[InMemory]: https://github.com/maghoff/mustachio/blob/master/lib/partials/in-memory.js
+[InMemory]: https://github.com/maghoff/mustachio/blob/v1/lib/partials/in-memory.js
 
 Implementations
 ===============

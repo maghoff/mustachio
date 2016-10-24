@@ -6,7 +6,7 @@ Mustache spec][spec].
 [v1.1.3]: https://github.com/mustache/spec/tree/v1.1.3
 [spec]: https://github.com/mustache/spec
 
-[![Build Status](https://travis-ci.org/maghoff/mustachio.svg?branch=master)](https://travis-ci.org/maghoff/mustachio)
+[![Build Status](https://travis-ci.org/maghoff/mustachio.svg?branch=v1)](https://travis-ci.org/maghoff/mustachio)
 
 Getting started
 ===============
@@ -67,11 +67,11 @@ qualities of the streaming model:
  * [react][react] shows how to explicitly flush the render buffer before
    blocking for a large or slow operation
 
-[examples]: https://github.com/maghoff/mustachio/tree/master/examples
-[large-response]: https://github.com/maghoff/mustachio/tree/master/examples/large-response
-[file-browser]: https://github.com/maghoff/mustachio/tree/master/examples/file-browser
-[postgres-query-stream]: https://github.com/maghoff/mustachio/tree/master/examples/postgres-query-stream
-[react]: https://github.com/maghoff/mustachio/tree/master/examples/react
+[examples]: https://github.com/maghoff/mustachio/tree/v1/examples
+[large-response]: https://github.com/maghoff/mustachio/tree/v1/examples/large-response
+[file-browser]: https://github.com/maghoff/mustachio/tree/v1/examples/file-browser
+[postgres-query-stream]: https://github.com/maghoff/mustachio/tree/v1/examples/postgres-query-stream
+[react]: https://github.com/maghoff/mustachio/tree/v1/examples/react
 
 API
 ===
@@ -128,7 +128,7 @@ resolver object:
 
 See [partials][partials] for details.
 
-[partials]: https://github.com/maghoff/mustachio/tree/master/lib/partials
+[partials]: https://github.com/maghoff/mustachio/tree/v1/lib/partials
 
 When using a template string, partials will by default not be resolved. To
 enable partials resolving for such templates, pass a partials resolver to the
