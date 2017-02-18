@@ -20,4 +20,7 @@ describe('render', function() {
 
 	it('should treat string as boolean true in section', testRender("{{#string}}yes{{/string}}", { string: "true" }, "yes"));
 	it('should treat string as boolean true in negative section', testRender("{{^string}}no{{/string}}", { string: "true" }, ""));
+
+	let manyLines = "testline\n".repeat(8192);
+	it('should handle many consecutive lines without tags', testRender(manyLines, {}, manyLines));
 });
